@@ -14,9 +14,11 @@ public class ContainerTurbine extends Container {
 
     private TileEntityTurbineController tile;
 
-    // Cache for syncing
     private int lastSpeed;
-    private int lastStoredEU;
+    private int lastCtrlStored;
+    private int lastCtrlMax;
+    private int lastDynStored;
+    private int lastDynMax;
     private int lastInputAmount;
     private int lastOutputAmount;
 
@@ -24,7 +26,7 @@ public class ContainerTurbine extends Container {
         this.tile = tile;
 
         // Rotor slot in controller area
-        this.addSlotToContainer(new Slot(tile, 0, 145, 57) {
+        this.addSlotToContainer(new Slot(tile, 0, 153, 57) {
 
             @Override
             public boolean isItemValid(ItemStack stack) {
@@ -35,13 +37,13 @@ public class ContainerTurbine extends Container {
         // Vanilla player inventory layout
         for (int i = 0; i < 3; ++i) {
             for (int j = 0; j < 9; ++j) {
-                this.addSlotToContainer(new Slot(playerInv, j + i * 9 + 9, 8 + j * 18, 88 + i * 18));
+                this.addSlotToContainer(new Slot(playerInv, j + i * 9 + 9, 9 + j * 18, 89 + i * 18));
             }
         }
 
         // Hotbar
         for (int i = 0; i < 9; ++i) {
-            this.addSlotToContainer(new Slot(playerInv, i, 8 + i * 18, 146));
+            this.addSlotToContainer(new Slot(playerInv, i, 9 + i * 18, 147));
         }
     }
 
@@ -99,55 +101,95 @@ public class ContainerTurbine extends Container {
         for (int i = 0; i < this.crafters.size(); ++i) {
             ICrafting icrafting = (ICrafting) this.crafters.get(i);
 
-            // Sync currentSpeed
-            if (this.lastSpeed != this.tile.getCurrentSpeed()) {
-                icrafting.sendProgressBarUpdate(this, 0, this.tile.getCurrentSpeed());
+            // Sync Controller Stored (ID 1, 5)
+            int cStored = (int) this.tile.getControllerStored();
+            if (this.lastCtrlStored != cStored) {
+                icrafting.sendProgressBarUpdate(this, 1, cStored & 0xFFFF);
+                icrafting.sendProgressBarUpdate(this, 5, (cStored >> 16) & 0xFFFF);
             }
 
-            // Sync storedEU (truncated to int, usually fine for GUI bar)
-            int stored = (int) this.tile.getStoredEU();
-            if (this.lastStoredEU != stored) {
-                icrafting.sendProgressBarUpdate(this, 1, stored);
+            // Sync Controller Max (ID 4, 6)
+            int cMax = (int) this.tile.getControllerCapacity();
+            if (this.lastCtrlMax != cMax) {
+                icrafting.sendProgressBarUpdate(this, 4, cMax & 0xFFFF);
+                icrafting.sendProgressBarUpdate(this, 6, (cMax >> 16) & 0xFFFF);
+            }
+
+            // Sync Dynamo Stored (ID 7, 11)
+            int dStored = (int) this.tile.getDynamoStored();
+            if (this.lastDynStored != dStored) {
+                icrafting.sendProgressBarUpdate(this, 7, dStored & 0xFFFF);
+                icrafting.sendProgressBarUpdate(this, 11, (dStored >> 16) & 0xFFFF);
+            }
+
+            // Sync Dynamo Max (ID 8, 12)
+            int dMax = (int) this.tile.getDynamoCapacity();
+            if (this.lastDynMax != dMax) {
+                icrafting.sendProgressBarUpdate(this, 8, dMax & 0xFFFF);
+                icrafting.sendProgressBarUpdate(this, 12, (dMax >> 16) & 0xFFFF);
             }
 
             // Sync Fluid
             int inAmt = this.tile.inputTank.getFluidAmount();
-            if (this.lastInputAmount != inAmt) {
-                icrafting.sendProgressBarUpdate(this, 2, inAmt);
-            }
-
+            if (this.lastInputAmount != inAmt) icrafting.sendProgressBarUpdate(this, 2, inAmt);
             int outAmt = this.tile.outputTank.getFluidAmount();
-            if (this.lastOutputAmount != outAmt) {
-                icrafting.sendProgressBarUpdate(this, 3, outAmt);
-            }
+            if (this.lastOutputAmount != outAmt) icrafting.sendProgressBarUpdate(this, 3, outAmt);
+
+            if (this.lastSpeed != this.tile.getCurrentSpeed()) icrafting.sendProgressBarUpdate(this, 0, this.tile.getCurrentSpeed());
         }
 
         this.lastSpeed = this.tile.getCurrentSpeed();
-        this.lastStoredEU = (int) this.tile.getStoredEU();
+        this.lastCtrlStored = (int) this.tile.getControllerStored();
+        this.lastCtrlMax = (int) this.tile.getControllerCapacity();
+        this.lastDynStored = (int) this.tile.getDynamoStored();
+        this.lastDynMax = (int) this.tile.getDynamoCapacity();
         this.lastInputAmount = this.tile.inputTank.getFluidAmount();
         this.lastOutputAmount = this.tile.outputTank.getFluidAmount();
     }
 
     @Override
     public void updateProgressBar(int id, int data) {
+        // 'data' comes as a short (16-bit signed), so we need to mask with 0xFFFF
+        // if we want to treat it as unsigned bits for reassembly.
+        int unsignedData = data & 0xFFFF;
+        
         switch (id) {
             case 0:
                 this.tile.setCurrentSpeed(data);
                 break;
             case 1:
-                this.tile.setStoredEU(data);
+                this.tile.setGuiCtrlStored_L(unsignedData);
+                break;
+            case 5:
+                this.tile.setGuiCtrlStored_H(unsignedData);
                 break;
             case 2:
-                // Client-side visual update for tank
                 if (this.tile.inputTank.getFluid() != null) {
                     this.tile.inputTank.getFluid().amount = data;
                 }
                 break;
             case 3:
-                // Output tank sync
                 if (this.tile.outputTank.getFluid() != null) {
                     this.tile.outputTank.getFluid().amount = data;
                 }
+                break;
+            case 4:
+                this.tile.setGuiCtrlMax_L(unsignedData);
+                break;
+            case 6:
+                this.tile.setGuiCtrlMax_H(unsignedData);
+                break;
+            case 7:
+                this.tile.setGuiDynStored_L(unsignedData);
+                break;
+            case 11:
+                this.tile.setGuiDynStored_H(unsignedData);
+                break;
+            case 8:
+                this.tile.setGuiDynMax_L(unsignedData);
+                break;
+            case 12:
+                this.tile.setGuiDynMax_H(unsignedData);
                 break;
         }
     }

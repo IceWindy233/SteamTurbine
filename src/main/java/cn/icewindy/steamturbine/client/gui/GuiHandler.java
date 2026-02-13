@@ -23,7 +23,7 @@ public class GuiHandler implements IGuiHandler {
         } else if (ID == 1 || ID == 2) {
             TileEntity te = world.getTileEntity(x, y, z);
             if (te instanceof TileEntityInputHatch || te instanceof TileEntityOutputHatch) {
-                return new ContainerFluidHatch(te);
+                return new ContainerFluidHatch(player.inventory, te);
             }
         }
         return null;

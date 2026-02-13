@@ -66,6 +66,10 @@ public class TileEntityTurbineController extends TileEntity implements IEnergySo
     private int guiSyncTimer = 0;
     private long recipesDone = 0;
     private boolean redstonePowered = false;
+    private int guiCtrlStored_L = 0, guiCtrlStored_H = 0;
+    private int guiCtrlMax_L = 0, guiCtrlMax_H = 0;
+    private int guiDynStored_L = 0, guiDynStored_H = 0;
+    private int guiDynMax_L = 0, guiDynMax_H = 0;
 
     public TileEntityTurbineController() {
         inputTank = new FluidTank(ModConfig.tankCapacity * 2);
@@ -535,6 +539,15 @@ public class TileEntityTurbineController extends TileEntity implements IEnergySo
         this.currentSpeed = speed;
     }
 
+    public void setGuiCtrlStored_L(int v) { this.guiCtrlStored_L = v & 0xFFFF; }
+    public void setGuiCtrlStored_H(int v) { this.guiCtrlStored_H = v & 0xFFFF; }
+    public void setGuiCtrlMax_L(int v) { this.guiCtrlMax_L = v & 0xFFFF; }
+    public void setGuiCtrlMax_H(int v) { this.guiCtrlMax_H = v & 0xFFFF; }
+    public void setGuiDynStored_L(int v) { this.guiDynStored_L = v & 0xFFFF; }
+    public void setGuiDynStored_H(int v) { this.guiDynStored_H = v & 0xFFFF; }
+    public void setGuiDynMax_L(int v) { this.guiDynMax_L = v & 0xFFFF; }
+    public void setGuiDynMax_H(int v) { this.guiDynMax_H = v & 0xFFFF; }
+
     public double getStoredEU() {
         return storedEU;
     }
@@ -590,24 +603,40 @@ public class TileEntityTurbineController extends TileEntity implements IEnergySo
         return recipesDone;
     }
 
-    public long getTotalEnergyStored() {
+    public long getControllerStored() {
+        if (worldObj.isRemote) return ((long)guiCtrlStored_H << 16) | (guiCtrlStored_L & 0xFFFF);
+        return (long) storedEU;
+    }
+
+    public long getControllerCapacity() {
+        if (worldObj.isRemote) return ((long)guiCtrlMax_H << 16) | (guiCtrlMax_L & 0xFFFF);
+        return (long) getControllerEnergyBuffer();
+    }
+
+    public long getDynamoStored() {
+        if (worldObj.isRemote) return ((long)guiDynStored_H << 16) | (guiDynStored_L & 0xFFFF);
         long total = 0;
         for (TileEntityDynamoHatch hatch : dynamoHatches) {
-            if (hatch != null && !hatch.isInvalid()) {
-                total += (long) hatch.getStoredEUBuffer();
-            }
+            if (hatch != null && !hatch.isInvalid()) total += (long) hatch.getStoredEUBuffer();
         }
         return total;
     }
 
-    public long getTotalEnergyCapacity() {
+    public long getDynamoCapacity() {
+        if (worldObj.isRemote) return ((long)guiDynMax_H << 16) | (guiDynMax_L & 0xFFFF);
         long total = 0;
         for (TileEntityDynamoHatch hatch : dynamoHatches) {
-            if (hatch != null && !hatch.isInvalid()) {
-                total += (long) hatch.getEnergyCapacity();
-            }
+            if (hatch != null && !hatch.isInvalid()) total += (long) hatch.getEnergyCapacity();
         }
         return total;
+    }
+
+    public long getTotalEnergyStored() {
+        return getControllerStored() + getDynamoStored();
+    }
+
+    public long getTotalEnergyCapacity() {
+        return getControllerCapacity() + getDynamoCapacity();
     }
 
     public int getRotorDamagePercent() {

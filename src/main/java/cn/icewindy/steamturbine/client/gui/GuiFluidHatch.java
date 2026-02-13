@@ -18,16 +18,16 @@ public class GuiFluidHatch extends GuiContainer {
 
     private static final ResourceLocation GUI_TEXTURE = new ResourceLocation(
         SteamTurbineMod.MOD_ID,
-        "textures/gui/turbine_gui.png");
+        "textures/gui/gui_normal.png");
     private final TileEntity tile;
     private final String titleKey;
 
     public GuiFluidHatch(InventoryPlayer playerInv, TileEntity tile, String titleKey) {
-        super(new ContainerFluidHatch(tile));
+        super(new ContainerFluidHatch(playerInv, tile));
         this.tile = tile;
         this.titleKey = titleKey;
         this.xSize = 176;
-        this.ySize = 166;
+        this.ySize = 171;
     }
 
     @Override
@@ -52,7 +52,7 @@ public class GuiFluidHatch extends GuiContainer {
             8,
             46,
             0x404040);
-        this.fontRendererObj.drawString(StatCollector.translateToLocal("container.inventory"), 8, 76, 0x404040);
+        this.fontRendererObj.drawString(StatCollector.translateToLocal("container.inventory"), 9, 77, 0x404040);
     }
 
     @Override
@@ -63,7 +63,6 @@ public class GuiFluidHatch extends GuiContainer {
         this.mc.getTextureManager()
             .bindTexture(GUI_TEXTURE);
         drawTexturedModalRect(left, top, 0, 0, this.xSize, this.ySize);
-        drawRect(left + 7, top + 20, left + 169, top + 60, 0x22FFFFFF);
     }
 
     private FluidStack getFluid() {
