@@ -23,8 +23,7 @@ import com.google.gson.annotations.SerializedName;
  */
 public class ModConfig {
 
-    public static final String CONFIG_FOLDER_NAME = "icewindy_steamturbine";
-    public static final String LEGACY_CONFIG_FOLDER_NAME = "steamturbine";
+    public static final String CONFIG_FOLDER_NAME = "steamturbine";
 
     /** 最大输出电压 (EU/t)，默认 512 (HV) */
     public static int maxOutputVoltage = 512;
@@ -161,39 +160,16 @@ public class ModConfig {
         File configRoot = suggestedConfigFile.getParentFile();
         globalConfigDir = configRoot;
         modConfigDir = new File(configRoot, CONFIG_FOLDER_NAME);
-        File legacyDir = new File(configRoot, LEGACY_CONFIG_FOLDER_NAME);
-        if (!modConfigDir.exists() && legacyDir.exists()) {
-            legacyDir.renameTo(modConfigDir);
-        }
         if (!modConfigDir.exists()) {
             modConfigDir.mkdirs();
         }
 
-        File target = new File(modConfigDir, "steamturbine.cfg");
-        if (!target.exists() && suggestedConfigFile.exists()) {
-            try {
-                if (!suggestedConfigFile.getCanonicalPath()
-                    .equals(target.getCanonicalPath())) {
-                    boolean moved = suggestedConfigFile.renameTo(target);
-                    if (!moved) {
-                        copyFile(suggestedConfigFile, target);
-                    }
-                }
-            } catch (Exception ignored) {}
-        }
-        return target;
+        return new File(modConfigDir, "steamturbine.cfg");
     }
 
     private static void initRotorConfigPath(File configFile) {
         File configRoot = configFile.getParentFile();
         rotorConfigFile = new File(configRoot, "rotors.json");
-        File legacyFile = new File(new File(globalConfigDir, LEGACY_CONFIG_FOLDER_NAME + "/rotors"), "rotors.json");
-        File oldPathFile = new File(new File(configRoot, "rotors"), "rotors.json");
-        if (!rotorConfigFile.exists() && legacyFile.exists()) {
-            copyFile(legacyFile, rotorConfigFile);
-        } else if (!rotorConfigFile.exists() && oldPathFile.exists()) {
-            copyFile(oldPathFile, rotorConfigFile);
-        }
     }
 
     private static void loadRotorConfig() {
@@ -222,17 +198,6 @@ public class ModConfig {
             rotorDefinitions.addAll(defaultRotors());
             writeDefaultRotorConfig(rotorConfigFile);
         }
-    }
-
-    private static void copyFile(File source, File target) {
-        byte[] buffer = new byte[8192];
-        try (java.io.FileInputStream in = new java.io.FileInputStream(source);
-            FileOutputStream out = new FileOutputStream(target)) {
-            int len;
-            while ((len = in.read(buffer)) > 0) {
-                out.write(buffer, 0, len);
-            }
-        } catch (Exception ignored) {}
     }
 
     private static void initResourcePackTemplate() {
