@@ -135,7 +135,8 @@ public class ContainerTurbine extends Container {
             int outAmt = this.tile.outputTank.getFluidAmount();
             if (this.lastOutputAmount != outAmt) icrafting.sendProgressBarUpdate(this, 3, outAmt);
 
-            if (this.lastSpeed != this.tile.getCurrentSpeed()) icrafting.sendProgressBarUpdate(this, 0, this.tile.getCurrentSpeed());
+            if (this.lastSpeed != this.tile.getCurrentSpeed())
+                icrafting.sendProgressBarUpdate(this, 0, this.tile.getCurrentSpeed());
         }
 
         this.lastSpeed = this.tile.getCurrentSpeed();
@@ -152,7 +153,7 @@ public class ContainerTurbine extends Container {
         // 'data' comes as a short (16-bit signed), so we need to mask with 0xFFFF
         // if we want to treat it as unsigned bits for reassembly.
         int unsignedData = data & 0xFFFF;
-        
+
         switch (id) {
             case 0:
                 this.tile.setCurrentSpeed(data);

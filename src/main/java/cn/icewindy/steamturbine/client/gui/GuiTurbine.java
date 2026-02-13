@@ -30,7 +30,7 @@ public class GuiTurbine extends GuiContainer {
     public GuiTurbine(InventoryPlayer playerInv, TileEntityTurbineController tile) {
         super(new ContainerTurbine(playerInv, tile));
         this.tile = tile;
-        this.xSize = 176;
+        this.xSize = 177;
         this.ySize = 171;
     }
 
@@ -98,12 +98,7 @@ public class GuiTurbine extends GuiContainer {
             damageColor = STATUS_YELLOW;
         }
 
-        drawRightInfoLine(
-            this.xSize - 8,
-            y0 + line * 2,
-            tr("steamturbine.gui.label.dmg"),
-            damage + "%",
-            damageColor);
+        drawRightInfoLine(this.xSize - 8, y0 + line * 2, tr("steamturbine.gui.label.dmg"), damage + "%", damageColor);
 
         drawRightInfoLine(
             this.xSize - 8,
@@ -148,15 +143,28 @@ public class GuiTurbine extends GuiContainer {
         // Tooltip for Energy Bar (x=116, y=75, w=54, h=12)
         if (mouseX >= left + 116 && mouseX <= left + 116 + 54 && mouseY >= top + 75 && mouseY <= top + 75 + 11) {
             List<String> tooltip = new ArrayList<String>();
-            tooltip.add(tr("steamturbine.gui.label.ctrl_eu") + ": " + formatExactValue(tile.getControllerStored()) + " / " + formatExactValue(tile.getControllerCapacity()));
-            tooltip.add(tr("steamturbine.gui.label.dyn_eu") + ": " + formatExactValue(tile.getDynamoStored()) + " / " + formatExactValue(tile.getDynamoCapacity()));
-            tooltip.add("Total: " + formatExactValue(tile.getTotalEnergyStored()) + " / " + formatExactValue(tile.getTotalEnergyCapacity()) + " EU");
+            tooltip.add(
+                tr("steamturbine.gui.label.ctrl_eu") + ": "
+                    + formatExactValue(tile.getControllerStored())
+                    + " / "
+                    + formatExactValue(tile.getControllerCapacity()));
+            tooltip.add(
+                tr("steamturbine.gui.label.dyn_eu") + ": "
+                    + formatExactValue(tile.getDynamoStored())
+                    + " / "
+                    + formatExactValue(tile.getDynamoCapacity()));
+            tooltip.add(
+                "Total: " + formatExactValue(tile.getTotalEnergyStored())
+                    + " / "
+                    + formatExactValue(tile.getTotalEnergyCapacity())
+                    + " EU");
             this.drawHoveringText(tooltip, mouseX, mouseY, fontRendererObj);
         }
     }
 
     private String formatExactValue(long value) {
-        return java.text.NumberFormat.getInstance().format(value);
+        return java.text.NumberFormat.getInstance()
+            .format(value);
     }
 
     private String formatValue(long value) {
