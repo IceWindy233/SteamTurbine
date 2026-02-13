@@ -277,7 +277,9 @@ public class TileEntityTurbineController extends TileEntity implements IEnergySo
             if (broken) {
                 rotorSlot = null;
                 currentSpeed = 0;
-                worldObj.createExplosion(null, xCoord, yCoord, zCoord, 2.0f, true);
+                if (ModConfig.rotorBreakExplosion) {
+                    worldObj.createExplosion(null, xCoord, yCoord, zCoord, 2.0f, true);
+                }
             }
         }
 

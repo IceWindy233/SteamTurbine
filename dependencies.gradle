@@ -36,11 +36,26 @@
 dependencies {
     api("net.industrial-craft:industrialcraft-2:2.2.828-experimental:dev")
 
-    // Thermal suite for local dev testing in deobfuscated workspace.
-    // IMPORTANT: these point to local jars and are transformed by rfg.deobf(...)
-    // so they can run in runClient dev environment.
-    runtimeOnlyNonPublishable(rfg.deobf(project.files("run/mods/CoFHCore-[1.7.10]3.1.4-329.jar")))
-    runtimeOnlyNonPublishable(rfg.deobf(project.files("run/mods/ThermalFoundation-[1.7.10]1.2.6-118.jar")))
-    runtimeOnlyNonPublishable(rfg.deobf(project.files("run/mods/ThermalExpansion-[1.7.10]4.1.5-248.jar")))
-    runtimeOnlyNonPublishable(rfg.deobf(project.files("run/mods/ThermalDynamics-[1.7.10]1.2.1-172.jar")))
+    // Optional local test mods (CoFH/Thermal).
+    // Supported locations:
+    //  - run/mods
+    //  - run/client/mods
+    // Missing files are skipped to avoid breaking clean build/reobf.
+    def optionalDevJars = [
+        "CoFHCore-[1.7.10]3.1.4-329.jar",
+        "ThermalFoundation-[1.7.10]1.2.6-118.jar",
+        "ThermalExpansion-[1.7.10]4.1.5-248.jar",
+        "ThermalDynamics-[1.7.10]1.2.1-172.jar"
+    ]
+    def optionalDevDirs = [file("run/mods"), file("run/client/mods")]
+
+    optionalDevJars.each { jarName ->
+        File jarFile = optionalDevDirs.collect { new File(it, jarName) }.find { it.exists() && it.isFile() }
+        if (jarFile != null) {
+            runtimeOnlyNonPublishable(rfg.deobf(project.files(jarFile)))
+            logger.lifecycle("[deps] Loaded optional dev mod: ${jarFile}")
+        } else {
+            logger.lifecycle("[deps] Skip missing optional dev mod: ${jarName}")
+        }
+    }
 }

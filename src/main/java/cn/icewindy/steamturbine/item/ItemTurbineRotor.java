@@ -13,23 +13,19 @@ import cn.icewindy.steamturbine.ModConfig;
 import cn.icewindy.steamturbine.ModCreativeTab;
 import cn.icewindy.steamturbine.SteamTurbineMod;
 import cn.icewindy.steamturbine.util.RotorStats;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 /**
- * 涡轮转子物品（多材质）。
- * 通过 metadata 区分材质：0=铁, 1=钢, 2=钛。
- * 每种材质有不同的效率、最优流量和耐久度。
+ * 涡轮转子物品（配置驱动）。
  */
 public class ItemTurbineRotor extends Item {
 
     public static final int META_IRON = 0;
     public static final int META_STEEL = 1;
     public static final int META_TITANIUM = 2;
-    public static final int META_COUNT = 3;
 
-    private static final String[] NAMES = { "iron", "steel", "titanium" };
-    private static final String[] DISPLAY_NAMES = { "Iron", "Steel", "Titanium" };
-
-    private IIcon[] icons;
+    private IIcon[] icons = new IIcon[0];
 
     public ItemTurbineRotor() {
         super();
@@ -37,7 +33,7 @@ public class ItemTurbineRotor extends Item {
         setCreativeTab(ModCreativeTab.INSTANCE);
         setMaxStackSize(1);
         setHasSubtypes(true);
-        setMaxDamage(0); // 由子类型单独控制耐久
+        setMaxDamage(0);
         setNoRepair();
     }
 
@@ -45,6 +41,9 @@ public class ItemTurbineRotor extends Item {
      * 获取指定 metadata 的最大耐久度。
      */
     public static int getMaxDurability(int meta) {
+        if (ModConfig.isRotorInfiniteDurability(meta)) {
+            return Integer.MAX_VALUE;
+        }
         return ModConfig.getRotorDurability(meta);
     }
 
@@ -60,7 +59,9 @@ public class ItemTurbineRotor extends Item {
 
     @Override
     public boolean showDurabilityBar(ItemStack stack) {
-        // 仅当转子有磨损时显示耐久条
+        if (ModConfig.isRotorInfiniteDurability(stack.getItemDamage())) {
+            return false;
+        }
         return getDurabilityForDisplay(stack) > 0.0;
     }
 
@@ -68,7 +69,6 @@ public class ItemTurbineRotor extends Item {
     public double getDurabilityForDisplay(ItemStack stack) {
         int maxDmg = getMaxDurability(stack.getItemDamage());
         if (maxDmg <= 0) return 0.0;
-        // NBT 中存储已使用的耐久
         int used = 0;
         if (stack.hasTagCompound()) {
             used = stack.getTagCompound()
@@ -84,6 +84,7 @@ public class ItemTurbineRotor extends Item {
      */
     public static boolean applyDamage(ItemStack stack, int amount) {
         if (stack == null || !(stack.getItem() instanceof ItemTurbineRotor)) return true;
+        if (ModConfig.isRotorInfiniteDurability(stack.getItemDamage())) return false;
 
         if (!stack.hasTagCompound()) {
             stack.setTagCompound(new net.minecraft.nbt.NBTTagCompound());
@@ -102,6 +103,7 @@ public class ItemTurbineRotor extends Item {
      */
     public static int getRemainingDurability(ItemStack stack) {
         if (stack == null) return 0;
+        if (ModConfig.isRotorInfiniteDurability(stack.getItemDamage())) return Integer.MAX_VALUE;
         int maxDmg = getMaxDurability(stack.getItemDamage());
         int used = 0;
         if (stack.hasTagCompound()) {
@@ -113,31 +115,45 @@ public class ItemTurbineRotor extends Item {
 
     @Override
     public String getUnlocalizedName(ItemStack stack) {
-        int meta = stack.getItemDamage();
-        if (meta >= 0 && meta < NAMES.length) {
-            return super.getUnlocalizedName() + "." + NAMES[meta];
-        }
-        return super.getUnlocalizedName();
+        String name = normalizeName(ModConfig.getRotorItemName(stack.getItemDamage()));
+        return super.getUnlocalizedName() + "." + name;
+    }
+
+    @Override
+    public String getItemStackDisplayName(ItemStack stack) {
+        return ModConfig.getRotorItemName(stack.getItemDamage()) + " Turbine Rotor";
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public void getSubItems(Item item, CreativeTabs tab, List list) {
-        for (int i = 0; i < META_COUNT; i++) {
+        int count = Math.max(1, ModConfig.getRotorCount());
+        for (int i = 0; i < count; i++) {
             list.add(new ItemStack(item, 1, i));
         }
     }
 
     @Override
+    @SideOnly(Side.CLIENT)
     public void registerIcons(IIconRegister reg) {
-        icons = new IIcon[META_COUNT];
-        for (int i = 0; i < META_COUNT; i++) {
-            icons[i] = reg.registerIcon(SteamTurbineMod.MOD_ID + ":rotor_" + NAMES[i]);
+        int count = Math.max(1, ModConfig.getRotorCount());
+        icons = new IIcon[count];
+
+        for (int i = 0; i < count; i++) {
+            String iconFile = ModConfig.getRotorIconFileName(i);
+            String builtin = stripExtension(iconFile);
+            if (builtin.isEmpty()) {
+                builtin = "rotor_iron";
+            }
+            icons[i] = reg.registerIcon(SteamTurbineMod.MOD_ID + ":" + builtin);
         }
     }
 
     @Override
     public IIcon getIconFromDamage(int damage) {
+        if (icons == null || icons.length == 0) {
+            return null;
+        }
         if (damage >= 0 && damage < icons.length) {
             return icons[damage];
         }
@@ -152,10 +168,37 @@ public class ItemTurbineRotor extends Item {
         int remaining = getRemainingDurability(stack);
         int maxDur = getMaxDurability(meta);
 
-        tooltip.add("\u00a77Material: \u00a7f" + DISPLAY_NAMES[Math.min(meta, DISPLAY_NAMES.length - 1)]);
+        tooltip.add("\u00a77Material: \u00a7f" + ModConfig.getRotorItemName(meta));
         tooltip.add("\u00a77Efficiency: \u00a7a" + String.format("%.0f%%", stats.efficiency * 100));
         tooltip.add("\u00a77Optimal Flow: \u00a7b" + stats.optimalFlow + " L/t");
         tooltip.add("\u00a77Overflow Level: \u00a7e" + stats.overflowMultiplier);
-        tooltip.add("\u00a77Durability: \u00a7f" + remaining + " / " + maxDur);
+        if (ModConfig.isRotorInfiniteDurability(meta)) {
+            tooltip.add("\u00a77Durability: \u00a7aInfinite");
+        } else {
+            tooltip.add("\u00a77Durability: \u00a7f" + remaining + " / " + maxDur);
+        }
+    }
+
+    private static String stripExtension(String fileName) {
+        if (fileName == null) {
+            return "";
+        }
+        int dot = fileName.lastIndexOf('.');
+        if (dot <= 0) {
+            return fileName;
+        }
+        return fileName.substring(0, dot);
+    }
+
+    private static String normalizeName(String name) {
+        if (name == null) {
+            return "rotor";
+        }
+        String normalized = name.toLowerCase()
+            .replaceAll("[^a-z0-9_\\-]", "_");
+        if (normalized.isEmpty()) {
+            return "rotor";
+        }
+        return normalized;
     }
 }
