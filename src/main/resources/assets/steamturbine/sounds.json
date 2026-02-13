@@ -1,0 +1,11 @@
+{
+    "turbine_loop": {
+        "category": "block",
+        "sounds": [
+            {
+                "name": "steamturbine:turbine_loop",
+                "stream": false
+            }
+        ]
+    }
+}

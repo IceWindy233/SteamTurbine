@@ -21,7 +21,7 @@ public class BlockOutputHatch extends BlockHatch {
 
     @Override
     public void registerBlockIcons(IIconRegister reg) {
-        blockIcon = reg.registerIcon(SteamTurbineMod.MOD_ID + ":dynamo_hatch");
+        blockIcon = reg.registerIcon(SteamTurbineMod.MOD_ID + ":output_hatch");
     }
 
     @Override

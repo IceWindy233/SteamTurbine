@@ -2,6 +2,7 @@ package cn.icewindy.steamturbine.tileentity;
 
 import java.util.ArrayList;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
@@ -10,6 +11,7 @@ import net.minecraft.network.NetworkManager;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.ForgeDirection;
@@ -20,6 +22,7 @@ import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidHandler;
 
 import cn.icewindy.steamturbine.ModConfig;
+import cn.icewindy.steamturbine.client.sound.TurbineSound;
 import cn.icewindy.steamturbine.item.ItemTurbineRotor;
 import cn.icewindy.steamturbine.registry.ModBlocks;
 import cn.icewindy.steamturbine.util.MultiblockValidator;
@@ -27,6 +30,8 @@ import cn.icewindy.steamturbine.util.RotorStats;
 import cn.icewindy.steamturbine.util.TurbineConstants;
 import cn.icewindy.steamturbine.util.TurbineEnergyCalculator;
 import cn.icewindy.steamturbine.util.TurbineFluidHandler;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import ic2.api.energy.event.EnergyTileLoadEvent;
 import ic2.api.energy.event.EnergyTileUnloadEvent;
 import ic2.api.energy.tile.IEnergySource;
@@ -66,6 +71,9 @@ public class TileEntityTurbineController extends TileEntity implements IEnergySo
     private int guiSyncTimer = 0;
     private long recipesDone = 0;
     private boolean redstonePowered = false;
+
+    @SideOnly(Side.CLIENT)
+    private TurbineSound activeSound;
     private int guiCtrlStored_L = 0, guiCtrlStored_H = 0;
     private int guiCtrlMax_L = 0, guiCtrlMax_H = 0;
     private int guiDynStored_L = 0, guiDynStored_H = 0;
@@ -105,7 +113,10 @@ public class TileEntityTurbineController extends TileEntity implements IEnergySo
 
     @Override
     public void updateEntity() {
-        if (worldObj.isRemote) return;
+        if (worldObj.isRemote) {
+            updateClientSound();
+            return;
+        }
 
         redstonePowered = isRedstoneShutdownActive();
 
@@ -117,7 +128,9 @@ public class TileEntityTurbineController extends TileEntity implements IEnergySo
         }
 
         if (!isFormed || rotorSlot == null || !(rotorSlot.getItem() instanceof ItemTurbineRotor)) {
+            currentSpeed = 0; // Mechanical stop
             stopTurbine();
+            worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
             return;
         }
 
@@ -186,8 +199,10 @@ public class TileEntityTurbineController extends TileEntity implements IEnergySo
     }
 
     private void stopTurbine() {
-        if (currentSpeed > 0) {
-            currentSpeed = Math.max(0, currentSpeed - FRICTION * 2);
+        if (!isFormed || rotorSlot == null) {
+            currentSpeed = 0;
+        } else if (currentSpeed > 0) {
+            currentSpeed = Math.max(0, currentSpeed - 100); // Faster decay if just stopped
         }
         lastEUOutput = 0;
         lastSteamConsumed = 0;
@@ -403,6 +418,34 @@ public class TileEntityTurbineController extends TileEntity implements IEnergySo
             addedToEnergyNet = false;
         }
         super.invalidate();
+        if (isFormed) {
+            MultiblockValidator.releaseBlocks(this);
+        }
+        if (worldObj.isRemote) {
+            stopClientSound();
+        }
+    }
+
+    @SideOnly(Side.CLIENT)
+    private void updateClientSound() {
+        if (isFormed && currentSpeed > 0) {
+            if (activeSound == null || activeSound.isDonePlaying()) {
+                activeSound = new TurbineSound(this);
+                Minecraft.getMinecraft()
+                    .getSoundHandler()
+                    .playSound(activeSound);
+            }
+        } else {
+            stopClientSound();
+        }
+    }
+
+    @SideOnly(Side.CLIENT)
+    private void stopClientSound() {
+        if (activeSound != null) {
+            activeSound.stopSound();
+            activeSound = null;
+        }
     }
 
     @Override
@@ -491,8 +534,14 @@ public class TileEntityTurbineController extends TileEntity implements IEnergySo
     public void recheckStructure() {
         ForgeDirection dir = ForgeDirection.getOrientation(facing);
         // 使用改进的验证器替代旧逻辑
-        MultiblockValidator.ValidationResult result = MultiblockValidator
-            .validate(worldObj, xCoord, yCoord, zCoord, dir, this);
+        MultiblockValidator.ValidationResult result;
+        if (isFormed) {
+            // Already formed, need to clear previous registration before re-validating
+            MultiblockValidator.releaseBlocks(this);
+            result = MultiblockValidator.validate(worldObj, xCoord, yCoord, zCoord, dir, this);
+        } else {
+            result = MultiblockValidator.validate(worldObj, xCoord, yCoord, zCoord, dir, this);
+        }
         boolean newFormed = result.isValid;
 
         if (isFormed != newFormed) {
@@ -502,9 +551,12 @@ public class TileEntityTurbineController extends TileEntity implements IEnergySo
                 if (TurbineConstants.DEBUG_STRUCTURE_VALIDATION) {
                     System.out.println("[Turbine] Structure validation failed: " + result.errorMessage);
                 }
+                MultiblockValidator.releaseBlocks(this); // Release occupied blocks
             }
             markDirty();
             worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+            // Force a packet sync even if metadata didn't change
+            worldObj.notifyBlockChange(xCoord, yCoord, zCoord, getBlockType());
         }
     }
 
@@ -601,6 +653,11 @@ public class TileEntityTurbineController extends TileEntity implements IEnergySo
 
     public boolean isRedstonePowered() {
         return redstonePowered;
+    }
+
+    @Override
+    public AxisAlignedBB getRenderBoundingBox() {
+        return AxisAlignedBB.getBoundingBox(xCoord - 1, yCoord - 1, zCoord - 1, xCoord + 2, yCoord + 2, zCoord + 2);
     }
 
     private boolean isRedstoneShutdownActive() {
@@ -777,6 +834,8 @@ public class TileEntityTurbineController extends TileEntity implements IEnergySo
         nbt.setInteger("waterRemainder", waterCondensationRemainder);
         nbt.setLong("recipesDone", recipesDone);
         nbt.setBoolean("redstonePowered", redstonePowered);
+        nbt.setInteger("facing", facing);
+        nbt.setBoolean("isFormed", isFormed); // Crucial for TESR
 
         NBTTagCompound inputNBT = new NBTTagCompound();
         inputTank.writeToNBT(inputNBT);
@@ -797,6 +856,8 @@ public class TileEntityTurbineController extends TileEntity implements IEnergySo
         waterCondensationRemainder = nbt.getInteger("waterRemainder");
         recipesDone = nbt.getLong("recipesDone");
         redstonePowered = nbt.getBoolean("redstonePowered");
+        facing = nbt.getInteger("facing");
+        isFormed = nbt.getBoolean("isFormed"); // Crucial for TESR
 
         inputTank.readFromNBT(nbt.getCompoundTag("inputTank"));
         outputTank.readFromNBT(nbt.getCompoundTag("outputTank"));

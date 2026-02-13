@@ -1,7 +1,11 @@
 package cn.icewindy.steamturbine.util;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import net.minecraft.block.Block;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
@@ -32,6 +36,17 @@ public class MultiblockValidator {
     private static final int WIDTH = 3; // 宽度（3×3）
     private static final int HEIGHT = 3; // 高度（3×3）
     private static final int RADIUS = 1; // 半径（±1）
+
+    // 全局占用注册表：ChunkCoordinates (x,y,z) -> Controller TileEntity
+    private static final Map<ChunkCoordinates, TileEntityTurbineController> occupiedBlocks = new ConcurrentHashMap<>();
+
+    /**
+     * 清理某个控制器占用的所有方块。
+     */
+    public static void releaseBlocks(TileEntityTurbineController controller) {
+        occupiedBlocks.values()
+            .removeIf(v -> v == controller);
+    }
 
     /**
      * 验证结果数据类。
@@ -128,6 +143,21 @@ public class MultiblockValidator {
                     // 特殊情况：层0中心是控制器自身
                     if (layer == 0 && x == 0 && y == 0) {
                         continue;
+                    }
+
+                    // 检查方块是否被其他机器占用
+                    ChunkCoordinates coords = new ChunkCoordinates(bx, by, bz);
+                    TileEntityTurbineController owner = occupiedBlocks.get(coords);
+                    if (owner != null && owner != controller) {
+                        return new ValidationResult(
+                            false,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            String.format("Block at (%d, %d, %d) is already used by another turbine", bx, by, bz));
                     }
 
                     // 特殊情况：层1和层2的中心应为空气（转子旋转空间）
@@ -303,7 +333,20 @@ public class MultiblockValidator {
                 "At most 1 redstone control block allowed");
         }
 
-        // 验证成功
+        // 验证成功，标记占用（如果提供了控制器）
+        if (controller != null) {
+            for (int layer = 0; layer < DEPTH; layer++) {
+                for (int x = -RADIUS; x <= RADIUS; x++) {
+                    for (int y = -RADIUS; y <= RADIUS; y++) {
+                        int bx = controllerX + depth.offsetX * layer + right.offsetX * x + up.offsetX * y;
+                        int by = controllerY + depth.offsetY * layer + right.offsetY * x + up.offsetY * y;
+                        int bz = controllerZ + depth.offsetZ * layer + right.offsetZ * x + up.offsetZ * y;
+                        occupiedBlocks.put(new ChunkCoordinates(bx, by, bz), controller);
+                    }
+                }
+            }
+        }
+
         return new ValidationResult(
             true,
             totalComponents,

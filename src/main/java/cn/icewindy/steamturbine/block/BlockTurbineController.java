@@ -19,8 +19,12 @@ import cn.icewindy.steamturbine.tileentity.TileEntityTurbineController;
 public class BlockTurbineController extends BlockContainer {
 
     private IIcon iconFront;
-    private IIcon iconBack;
     private IIcon iconSide;
+
+    public static IIcon rotorBaseBG;
+    public static IIcon rotorBaseRing;
+    public static IIcon rotorIdle;
+    public static IIcon rotorSpinning;
 
     public BlockTurbineController() {
         super(Material.iron);
@@ -41,41 +45,25 @@ public class BlockTurbineController extends BlockContainer {
     public void registerBlockIcons(IIconRegister reg) {
         String modId = SteamTurbineMod.MOD_ID;
         iconFront = reg.registerIcon(modId + ":turbine_front");
-        iconBack = reg.registerIcon(modId + ":turbine_back");
+        // Back side will also use side texture per user request
         iconSide = reg.registerIcon(modId + ":turbine_side");
         blockIcon = iconSide;
+
+        rotorBaseBG = reg.registerIcon(modId + ":rotor/base_bg");
+        rotorBaseRing = reg.registerIcon(modId + ":rotor/base_ring");
+        rotorIdle = reg.registerIcon(modId + ":rotor/rotor_idle");
+        rotorSpinning = reg.registerIcon(modId + ":rotor/rotor_spinning");
     }
 
     @Override
     public IIcon getIcon(int side, int meta) {
+        // Meta 为 0 通常代表物品形态
+        if (meta == 0) {
+            // 改为 Side 4 (West)，在物品栏渲染中通常显示在左侧
+            return (side == 4) ? iconFront : iconSide;
+        }
         int facing = meta & 7;
-        if (side == facing) {
-            return iconFront;
-        }
-        int backSide = getOppositeSide(facing);
-        if (side == backSide) {
-            return iconBack;
-        }
-        return iconSide;
-    }
-
-    private int getOppositeSide(int side) {
-        switch (side) {
-            case 0:
-                return 1;
-            case 1:
-                return 0;
-            case 2:
-                return 3;
-            case 3:
-                return 2;
-            case 4:
-                return 5;
-            case 5:
-                return 4;
-            default:
-                return 0;
-        }
+        return (side == facing) ? iconFront : iconSide;
     }
 
     @Override
