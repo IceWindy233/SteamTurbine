@@ -55,6 +55,9 @@ public class ModConfig {
 
     public static class RotorDefinition {
 
+        @SerializedName("_Comment")
+        public String comment;
+
         @SerializedName("ItemName")
         public String itemName;
 
@@ -73,24 +76,54 @@ public class ModConfig {
         @SerializedName("Icon")
         public String icon;
 
+        @SerializedName("BladeIcon")
+        public String bladeIcon;
+
         @SerializedName("InfiniteDurability")
         public boolean infiniteDurability;
 
+        @SerializedName("Blade")
+        public boolean hasBlade;
+
         public RotorDefinition() {}
 
-        public RotorDefinition(String itemName, int overflow, int optimalFlow, float efficiency, int durability,
-            String icon, boolean infiniteDurability) {
+        public RotorDefinition(String comment, String itemName, int overflow, int optimalFlow, float efficiency, int durability,
+            String icon, String bladeIcon, boolean infiniteDurability, boolean hasBlade) {
+            this.comment = comment;
             this.itemName = itemName;
             this.overflow = overflow;
             this.optimalFlow = optimalFlow;
             this.efficiency = efficiency;
             this.durability = durability;
             this.icon = icon;
+            this.bladeIcon = bladeIcon;
             this.infiniteDurability = infiniteDurability;
+            this.hasBlade = hasBlade;
         }
     }
 
     private static class RotorConfigData {
+
+        @SerializedName("_Help1")
+        public String help1 = "这是涡轮转子配置文件。你可以在此动态添加任意材料的转子和叶片。";
+
+        @SerializedName("_Help2")
+        public String help2 = "ItemName: 决定材料名，会联动矿物辞典(如Iron->ingotIron)用于合成与取色。";
+
+        @SerializedName("_Help3")
+        public String help3 = "OptimalFlow: 最佳蒸汽流量(L/t)；Efficiency: 能量转换效率(0.01 到 1.0)。";
+
+        @SerializedName("_Help4")
+        public String help4 = "Overflow: 溢流倍率，决定转子处理过量蒸汽的能力；Durability: 总耐久度。";
+
+        @SerializedName("_Help5")
+        public String help5 = "InfiniteDurability: 是否开启无限耐久；Blade: 是否注册并启用关联的叶片物品。";
+
+        @SerializedName("_Help6")
+        public String help6 = "Icon/BladeIcon: 自定义贴图名(需带.png)，设为 null 则根据金属锭自动取色产生贴图。";
+
+        @SerializedName("_Help7")
+        public String help7 = "所有修改在重新启动游戏或重载后生效。";
 
         @SerializedName("Rotors")
         public List<RotorDefinition> rotors = new ArrayList<RotorDefinition>();
@@ -174,7 +207,7 @@ public class ModConfig {
 
     private static void loadRotorConfig() {
         if (!rotorConfigFile.exists()) {
-            writeDefaultRotorConfig(rotorConfigFile);
+            saveRotorConfig(rotorConfigFile, defaultRotors());
         }
 
         RotorConfigData data = null;
@@ -196,8 +229,10 @@ public class ModConfig {
 
         if (rotorDefinitions.isEmpty()) {
             rotorDefinitions.addAll(defaultRotors());
-            writeDefaultRotorConfig(rotorConfigFile);
         }
+        
+        // Save back the current (potentially new) definitions to include help text/comments
+        saveRotorConfig(rotorConfigFile, rotorDefinitions);
     }
 
     private static void initResourcePackTemplate() {
@@ -282,24 +317,25 @@ public class ModConfig {
         int optimalFlow = Math.max(1, def.optimalFlow);
         float efficiency = def.efficiency <= 0 ? 0.01f : def.efficiency;
         int durability = Math.max(1, def.durability);
-        String icon = def.icon == null ? "rotor_iron.png" : def.icon.trim();
-        if (icon.isEmpty()) {
-            icon = "rotor_iron.png";
+        String icon = def.icon == null ? null : def.icon.trim();
+        if (icon != null && icon.isEmpty()) {
+            icon = null;
         }
-        return new RotorDefinition(name, overflow, optimalFlow, efficiency, durability, icon, def.infiniteDurability);
+        return new RotorDefinition(def.comment, name, overflow, optimalFlow, efficiency, durability, icon, def.bladeIcon, def.infiniteDurability, def.hasBlade);
     }
 
     private static List<RotorDefinition> defaultRotors() {
         List<RotorDefinition> defaults = new ArrayList<RotorDefinition>();
-        defaults.add(new RotorDefinition("Iron", 1, 400, 0.80f, 4000, "rotor_iron.png", false));
-        defaults.add(new RotorDefinition("Steel", 2, 800, 0.90f, 8000, "rotor_steel.png", false));
-        defaults.add(new RotorDefinition("Titanium", 3, 1600, 1.00f, 16000, "rotor_titanium.png", false));
+        // 如果配置中没有图标，将触发动态取色
+        defaults.add(new RotorDefinition("基础铁质转子", "Iron", 1, 400, 0.80f, 4000, null, null, false, true));
+        defaults.add(new RotorDefinition("强化钢质转子", "Steel", 2, 800, 0.90f, 8000, null, null, false, true));
+        defaults.add(new RotorDefinition("先进钛质转子", "Titanium", 3, 1600, 1.00f, 16000, null, null, false, true));
         return defaults;
     }
 
-    private static void writeDefaultRotorConfig(File rotorConfigFile) {
+    private static void saveRotorConfig(File rotorConfigFile, List<RotorDefinition> definitions) {
         RotorConfigData data = new RotorConfigData();
-        data.rotors = defaultRotors();
+        data.rotors = new ArrayList<RotorDefinition>(definitions);
         try (Writer writer = new FileWriter(rotorConfigFile)) {
             GSON.toJson(data, writer);
         } catch (Exception e) {
@@ -345,6 +381,25 @@ public class ModConfig {
 
     public static boolean isRotorInfiniteDurability(int meta) {
         return getRotor(meta).infiniteDurability;
+    }
+
+    public static boolean hasRotorBlade(int meta) {
+        return getRotor(meta).hasBlade;
+    }
+
+    public static String getBladeIconFileName(int meta) {
+        return getRotor(meta).bladeIcon;
+    }
+
+    private static final java.util.Map<Integer, Integer> colorCache = new java.util.HashMap<Integer, Integer>();
+
+    public static void setCachedColor(int meta, int color) {
+        colorCache.put(meta, color);
+    }
+
+    public static int getCachedColor(int meta) {
+        Integer c = colorCache.get(meta);
+        return c != null ? c : 0xFFFFFF;
     }
 
     private static int clampRotorIndex(int meta) {

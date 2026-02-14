@@ -26,6 +26,7 @@ public class ItemTurbineRotor extends Item {
     public static final int META_TITANIUM = 2;
 
     private IIcon[] icons = new IIcon[0];
+    private boolean[] useTint = new boolean[0];
 
     public ItemTurbineRotor() {
         super();
@@ -138,15 +139,38 @@ public class ItemTurbineRotor extends Item {
     public void registerIcons(IIconRegister reg) {
         int count = Math.max(1, ModConfig.getRotorCount());
         icons = new IIcon[count];
+        useTint = new boolean[count];
 
         for (int i = 0; i < count; i++) {
+            String material = ModConfig.getRotorItemName(i);
             String iconFile = ModConfig.getRotorIconFileName(i);
-            String builtin = stripExtension(iconFile);
-            if (builtin.isEmpty()) {
-                builtin = "rotor_iron";
+            
+            if (iconFile != null && !iconFile.isEmpty()) {
+                String builtin = stripExtension(iconFile);
+                icons[i] = reg.registerIcon(SteamTurbineMod.MOD_ID + ":" + builtin);
+                useTint[i] = false;
+            } else {
+                if (!net.minecraftforge.oredict.OreDictionary.getOres("ingot" + material).isEmpty()) {
+                    icons[i] = reg.registerIcon(SteamTurbineMod.MOD_ID + ":basicitem/rotor");
+                    useTint[i] = true;
+                    int color = cn.icewindy.steamturbine.util.ColorExtractor.getAverageColor(material);
+                    ModConfig.setCachedColor(i, color);
+                } else {
+                    icons[i] = reg.registerIcon(SteamTurbineMod.MOD_ID + ":rotor_iron");
+                    useTint[i] = false;
+                }
             }
-            icons[i] = reg.registerIcon(SteamTurbineMod.MOD_ID + ":" + builtin);
         }
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public int getColorFromItemStack(ItemStack stack, int pass) {
+        int meta = stack.getItemDamage();
+        if (meta >= 0 && meta < useTint.length && useTint[meta]) {
+            return ModConfig.getCachedColor(meta);
+        }
+        return 0xFFFFFF;
     }
 
     @Override

@@ -80,14 +80,14 @@ public class GuiTurbine extends GuiContainer {
             this.xSize - 8,
             y0,
             tr("steamturbine.gui.label.ctrl_eu"),
-            formatValue(tile.getControllerStored()) + "/" + formatValue(tile.getControllerCapacity()),
+            tile.getControllerStored() + "/" + tile.getControllerCapacity(),
             TEXT_COLOR);
 
         drawRightInfoLine(
             this.xSize - 8,
             y0 + line,
             tr("steamturbine.gui.label.dyn_eu"),
-            formatValue(tile.getDynamoStored()) + "/" + formatValue(tile.getDynamoCapacity()),
+            tile.getDynamoStored() + "/" + tile.getDynamoCapacity(),
             TEXT_COLOR);
 
         int damage = tile.getRotorDamagePercent();

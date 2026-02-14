@@ -70,8 +70,11 @@ public class TileEntityDynamoHatch extends TileEntity implements IEnergySource {
 
     @Override
     public void drawEnergy(double amount) {
-        storedEU -= amount;
-        if (storedEU < 0) storedEU = 0;
+        if (amount > 0) {
+            storedEU -= amount;
+            if (storedEU < 0) storedEU = 0;
+            markDirty();
+        }
     }
 
     @Override
@@ -95,7 +98,10 @@ public class TileEntityDynamoHatch extends TileEntity implements IEnergySource {
     public double injectEnergy(double amount) {
         double space = INTERNAL_CAPACITY - storedEU;
         double accepted = Math.min(amount, space);
-        storedEU += accepted;
+        if (accepted > 0) {
+            storedEU += accepted;
+            markDirty();
+        }
         return accepted;
     }
 

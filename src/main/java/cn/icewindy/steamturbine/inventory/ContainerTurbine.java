@@ -15,12 +15,13 @@ public class ContainerTurbine extends Container {
     private TileEntityTurbineController tile;
 
     private int lastSpeed;
-    private int lastCtrlStored;
-    private int lastCtrlMax;
-    private int lastDynStored;
-    private int lastDynMax;
+    private long lastCtrlStored;
+    private long lastCtrlMax;
+    private long lastDynStored;
+    private long lastDynMax;
     private int lastInputAmount;
     private int lastOutputAmount;
+    private int syncTimer = 0;
 
     public ContainerTurbine(InventoryPlayer playerInv, TileEntityTurbineController tile) {
         this.tile = tile;
@@ -102,48 +103,39 @@ public class ContainerTurbine extends Container {
             ICrafting icrafting = (ICrafting) this.crafters.get(i);
 
             // Sync Controller Stored (ID 1, 5)
-            int cStored = (int) this.tile.getControllerStored();
-            if (this.lastCtrlStored != cStored) {
-                icrafting.sendProgressBarUpdate(this, 1, cStored & 0xFFFF);
-                icrafting.sendProgressBarUpdate(this, 5, (cStored >> 16) & 0xFFFF);
-            }
-
+            long cStored = this.tile.getControllerStored();
+            icrafting.sendProgressBarUpdate(this, 1, (int) (cStored & 0xFFFF));
+            icrafting.sendProgressBarUpdate(this, 5, (int) ((cStored >> 16) & 0xFFFF));
+            
             // Sync Controller Max (ID 4, 6)
-            int cMax = (int) this.tile.getControllerCapacity();
-            if (this.lastCtrlMax != cMax) {
-                icrafting.sendProgressBarUpdate(this, 4, cMax & 0xFFFF);
-                icrafting.sendProgressBarUpdate(this, 6, (cMax >> 16) & 0xFFFF);
-            }
-
+            long cMax = this.tile.getControllerCapacity();
+            icrafting.sendProgressBarUpdate(this, 4, (int) (cMax & 0xFFFF));
+            icrafting.sendProgressBarUpdate(this, 6, (int) ((cMax >> 16) & 0xFFFF));
+            
             // Sync Dynamo Stored (ID 7, 11)
-            int dStored = (int) this.tile.getDynamoStored();
-            if (this.lastDynStored != dStored) {
-                icrafting.sendProgressBarUpdate(this, 7, dStored & 0xFFFF);
-                icrafting.sendProgressBarUpdate(this, 11, (dStored >> 16) & 0xFFFF);
-            }
-
+            long dStored = this.tile.getDynamoStored();
+            icrafting.sendProgressBarUpdate(this, 7, (int) (dStored & 0xFFFF));
+            icrafting.sendProgressBarUpdate(this, 11, (int) ((dStored >> 16) & 0xFFFF));
+            
             // Sync Dynamo Max (ID 8, 12)
-            int dMax = (int) this.tile.getDynamoCapacity();
-            if (this.lastDynMax != dMax) {
-                icrafting.sendProgressBarUpdate(this, 8, dMax & 0xFFFF);
-                icrafting.sendProgressBarUpdate(this, 12, (dMax >> 16) & 0xFFFF);
-            }
-
-            // Sync Fluid
-            int inAmt = this.tile.inputTank.getFluidAmount();
-            if (this.lastInputAmount != inAmt) icrafting.sendProgressBarUpdate(this, 2, inAmt);
-            int outAmt = this.tile.outputTank.getFluidAmount();
-            if (this.lastOutputAmount != outAmt) icrafting.sendProgressBarUpdate(this, 3, outAmt);
-
-            if (this.lastSpeed != this.tile.getCurrentSpeed())
-                icrafting.sendProgressBarUpdate(this, 0, this.tile.getCurrentSpeed());
+            long dMax = this.tile.getDynamoCapacity();
+            icrafting.sendProgressBarUpdate(this, 8, (int) (dMax & 0xFFFF));
+            icrafting.sendProgressBarUpdate(this, 12, (int) ((dMax >> 16) & 0xFFFF));
+            
+            // Sync Speed
+            icrafting.sendProgressBarUpdate(this, 0, this.tile.getCurrentSpeed());
+            
+            // Sync Tank Amounts
+            icrafting.sendProgressBarUpdate(this, 2, this.tile.inputTank.getFluidAmount());
+            icrafting.sendProgressBarUpdate(this, 3, this.tile.outputTank.getFluidAmount());
         }
 
+        // No need for syncTimer or lastValue checks if we sync every tick
         this.lastSpeed = this.tile.getCurrentSpeed();
-        this.lastCtrlStored = (int) this.tile.getControllerStored();
-        this.lastCtrlMax = (int) this.tile.getControllerCapacity();
-        this.lastDynStored = (int) this.tile.getDynamoStored();
-        this.lastDynMax = (int) this.tile.getDynamoCapacity();
+        this.lastCtrlStored = this.tile.getControllerStored();
+        this.lastCtrlMax = this.tile.getControllerCapacity();
+        this.lastDynStored = this.tile.getDynamoStored();
+        this.lastDynMax = this.tile.getDynamoCapacity();
         this.lastInputAmount = this.tile.inputTank.getFluidAmount();
         this.lastOutputAmount = this.tile.outputTank.getFluidAmount();
     }

@@ -3,6 +3,7 @@ package cn.icewindy.steamturbine;
 import cn.icewindy.steamturbine.client.gui.GuiHandler;
 import cn.icewindy.steamturbine.registry.ModBlocks;
 import cn.icewindy.steamturbine.registry.ModItems;
+import cn.icewindy.steamturbine.registry.ModRecipes;
 import cn.icewindy.steamturbine.registry.ModTileEntities;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.SidedProxy;
@@ -41,6 +42,7 @@ public class SteamTurbineMod {
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
         NetworkRegistry.INSTANCE.registerGuiHandler(instance, new GuiHandler());
+        ModRecipes.init();
         proxy.init(event);
     }
 
