@@ -1,0 +1,45 @@
+itemGroup.steamturbine=Steam Turbine
+
+tile.steamturbine.turbine_casing.0.name=Turbine Casing
+tile.steamturbine.turbine_controller.name=Turbine Controller
+tile.steamturbine.input_hatch.name=Input Hatch
+tile.steamturbine.output_hatch.name=Output Hatch
+tile.steamturbine.dynamo_hatch.name=Dynamo Hatch
+tile.steamturbine.redstone_control.name=Redstone Control Block
+
+item.steamturbine.turbine_rotor.iron.name=Iron Turbine Rotor
+item.steamturbine.turbine_rotor.steel.name=Steel Turbine Rotor
+item.steamturbine.turbine_rotor.titanium.name=Titanium Turbine Rotor
+
+steamturbine.info.running.true=Running
+steamturbine.info.running.false=Stopped
+steamturbine.info.running.redstone_off=Redstone Off
+steamturbine.info.maintenance.false=Maintenance: OK
+steamturbine.info.efficiency=Efficiency
+steamturbine.info.energy=Energy
+steamturbine.info.flow=Flow
+steamturbine.info.fitting.tight=Tight
+steamturbine.info.fuel=Fuel
+steamturbine.info.damage=Turbine Damage
+steamturbine.info.pollution=Pollution
+steamturbine.info.recipes_done=Recipes Done
+steamturbine.gui.fluid=Fluid
+steamturbine.gui.amount=Stored
+steamturbine.gui.capacity=Capacity
+steamturbine.gui.empty=Empty
+steamturbine.gui.label.run=Run
+steamturbine.gui.label.formed=Formed
+steamturbine.gui.label.maint=Maint
+steamturbine.gui.label.eff=Eff
+steamturbine.gui.label.flow=Flow
+steamturbine.gui.label.fuel=Fuel
+steamturbine.gui.label.eu=EU
+steamturbine.gui.label.dmg=Dmg
+steamturbine.gui.label.poll=Poll
+steamturbine.gui.label.ops=Ops
+steamturbine.gui.value.on=ON
+steamturbine.gui.value.off=OFF
+steamturbine.gui.value.rs_off=RS OFF
+steamturbine.gui.value.yes=YES
+steamturbine.gui.value.no=NO
+steamturbine.gui.value.ok=OK

@@ -1,0 +1,21 @@
+{
+	"modListVersion": 2,
+	"modList": [{
+		"modid": "${modId}",
+		"name": "${modName}",
+		"description": "A standalone IC2 addon that adds a Large Steam Turbine multiblock for converting steam into EU.",
+		"version": "${modVersion}",
+		"mcversion": "${minecraftVersion}",
+		"url": "",
+		"updateUrl": "",
+		"authorList": ["MyName"],
+		"credits": "Inspired by GregTech 5 Large Steam Turbine",
+		"logoFile": "",
+		"screenshots": [],
+		"parent": "",
+		"requiredMods": ["IC2"],
+		"dependencies": ["IC2"],
+		"dependants": [],
+		"useDependencyInformation": true
+	}]
+}
