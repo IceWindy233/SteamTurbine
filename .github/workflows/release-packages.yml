@@ -67,7 +67,7 @@ jobs:
 
       - name: Update latest tag
         uses: "marvinpinto/action-automatic-releases@latest"
-        if: ${{ (github.ref == 'master' || github.ref == 'main') }}
+        if: ${{ (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main') }}
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "latest-packages"
@@ -76,7 +76,7 @@ jobs:
           files: packages/*
 
       - name: Release named version
-        if: ${{ !(github.ref == 'master' || github.ref == 'main') }}
+        if: ${{ !(github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main') }}
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
