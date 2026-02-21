@@ -31,7 +31,8 @@ public class ItemTurbineBlade extends Item {
 
     @Override
     public String getUnlocalizedName(ItemStack stack) {
-        String material = ModConfig.getRotorItemName(stack.getItemDamage()).toLowerCase();
+        String material = ModConfig.getRotorItemName(stack.getItemDamage())
+            .toLowerCase();
         return super.getUnlocalizedName() + "." + material;
     }
 
@@ -62,13 +63,14 @@ public class ItemTurbineBlade extends Item {
             if (ModConfig.hasRotorBlade(i)) {
                 String material = ModConfig.getRotorItemName(i);
                 String bladeIcon = ModConfig.getBladeIconFileName(i);
-                
+
                 if (bladeIcon != null && !bladeIcon.isEmpty()) {
                     String builtin = stripExtension(bladeIcon);
                     icons[i] = reg.registerIcon(SteamTurbineMod.MOD_ID + ":" + builtin);
                     useTint[i] = false;
                 } else {
-                    if (!net.minecraftforge.oredict.OreDictionary.getOres("ingot" + material).isEmpty()) {
+                    if (!net.minecraftforge.oredict.OreDictionary.getOres("ingot" + material)
+                        .isEmpty()) {
                         icons[i] = reg.registerIcon(SteamTurbineMod.MOD_ID + ":basicitem/blade");
                         useTint[i] = true;
                         // Color should already be cached by Rotor item, but we can set it again if needed

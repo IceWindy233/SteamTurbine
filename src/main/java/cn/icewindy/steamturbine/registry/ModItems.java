@@ -17,7 +17,7 @@ public class ModItems {
     public static void init() {
         turbineRotor = new ItemTurbineRotor();
         GameRegistry.registerItem(turbineRotor, "turbine_rotor");
-        
+
         turbineBlade = new ItemTurbineBlade();
         GameRegistry.registerItem(turbineBlade, "turbine_blade");
     }

@@ -106,25 +106,25 @@ public class ContainerTurbine extends Container {
             long cStored = this.tile.getControllerStored();
             icrafting.sendProgressBarUpdate(this, 1, (int) (cStored & 0xFFFF));
             icrafting.sendProgressBarUpdate(this, 5, (int) ((cStored >> 16) & 0xFFFF));
-            
+
             // Sync Controller Max (ID 4, 6)
             long cMax = this.tile.getControllerCapacity();
             icrafting.sendProgressBarUpdate(this, 4, (int) (cMax & 0xFFFF));
             icrafting.sendProgressBarUpdate(this, 6, (int) ((cMax >> 16) & 0xFFFF));
-            
+
             // Sync Dynamo Stored (ID 7, 11)
             long dStored = this.tile.getDynamoStored();
             icrafting.sendProgressBarUpdate(this, 7, (int) (dStored & 0xFFFF));
             icrafting.sendProgressBarUpdate(this, 11, (int) ((dStored >> 16) & 0xFFFF));
-            
+
             // Sync Dynamo Max (ID 8, 12)
             long dMax = this.tile.getDynamoCapacity();
             icrafting.sendProgressBarUpdate(this, 8, (int) (dMax & 0xFFFF));
             icrafting.sendProgressBarUpdate(this, 12, (int) ((dMax >> 16) & 0xFFFF));
-            
+
             // Sync Speed
             icrafting.sendProgressBarUpdate(this, 0, this.tile.getCurrentSpeed());
-            
+
             // Sync Tank Amounts
             icrafting.sendProgressBarUpdate(this, 2, this.tile.inputTank.getFluidAmount());
             icrafting.sendProgressBarUpdate(this, 3, this.tile.outputTank.getFluidAmount());

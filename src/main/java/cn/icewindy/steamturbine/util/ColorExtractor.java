@@ -28,18 +28,23 @@ public class ColorExtractor {
 
             // In 1.7.10, getting color from texture is best done by reading the resource directly
             // We need to resolve the icon to a resource path
-            String iconName = stack.getItem().getIconFromDamage(stack.getItemDamage()).getIconName();
+            String iconName = stack.getItem()
+                .getIconFromDamage(stack.getItemDamage())
+                .getIconName();
             String domain = "minecraft";
             String path = iconName;
-            
+
             if (iconName.contains(":")) {
                 String[] parts = iconName.split(":");
                 domain = parts[0];
                 path = parts[1];
             }
-            
+
             ResourceLocation res = new ResourceLocation(domain, "textures/items/" + path + ".png");
-            InputStream is = Minecraft.getMinecraft().getResourceManager().getResource(res).getInputStream();
+            InputStream is = Minecraft.getMinecraft()
+                .getResourceManager()
+                .getResource(res)
+                .getInputStream();
             BufferedImage image = ImageIO.read(is);
             is.close();
 
@@ -60,16 +65,16 @@ public class ColorExtractor {
             }
 
             if (count == 0) return 0xFFFFFF;
-            
-            int avgR = (int)(r / count);
-            int avgG = (int)(g / count);
-            int avgB = (int)(b / count);
+
+            int avgR = (int) (r / count);
+            int avgG = (int) (g / count);
+            int avgB = (int) (b / count);
 
             // 提亮方案：将提取出的颜色与白色(255)按比例混合
             // 改为 80% 原始颜色 + 20% 白色，找到明亮与浓郁之间的平衡点
-            avgR = (int)(avgR * 0.8 + 255 * 0.2);
-            avgG = (int)(avgG * 0.8 + 255 * 0.2);
-            avgB = (int)(avgB * 0.8 + 255 * 0.2);
+            avgR = (int) (avgR * 0.8 + 255 * 0.2);
+            avgG = (int) (avgG * 0.8 + 255 * 0.2);
+            avgB = (int) (avgB * 0.8 + 255 * 0.2);
 
             return (avgR << 16) | (avgG << 8) | avgB;
 

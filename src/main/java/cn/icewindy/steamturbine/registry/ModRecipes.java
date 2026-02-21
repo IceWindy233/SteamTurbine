@@ -24,7 +24,7 @@ public class ModRecipes {
 
         // 构建矿辞名称，例如 Iron -> ingotIron
         String ingotOre = "ingot" + material;
-        
+
         // 检查是否启用了叶片
         boolean hasBlade = ModConfig.hasRotorBlade(meta);
 
@@ -34,27 +34,24 @@ public class ModRecipes {
             // KXX
             // KXK
             // 'X' 代表金属锭, ' ' 代表空
-            GameRegistry.addRecipe(new ShapedOreRecipe(
-                new ItemStack(ModItems.turbineBlade, 1, meta),
-                " XX",
-                " XX",
-                " X ",
-                'X', ingotOre
-            ));
+            GameRegistry.addRecipe(
+                new ShapedOreRecipe(new ItemStack(ModItems.turbineBlade, 1, meta), " XX", " XX", " X ", 'X', ingotOre));
 
             // 合成二：转子 (Rotor)
             // KWK
             // WXW
             // KWK
             // 'X' 代表金属锭, 'W' 代表对应的叶片, ' ' 代表空
-            GameRegistry.addRecipe(new ShapedOreRecipe(
-                new ItemStack(ModItems.turbineRotor, 1, meta),
-                " W ",
-                "WXW",
-                " W ",
-                'X', ingotOre,
-                'W', new ItemStack(ModItems.turbineBlade, 1, meta)
-            ));
+            GameRegistry.addRecipe(
+                new ShapedOreRecipe(
+                    new ItemStack(ModItems.turbineRotor, 1, meta),
+                    " W ",
+                    "WXW",
+                    " W ",
+                    'X',
+                    ingotOre,
+                    'W',
+                    new ItemStack(ModItems.turbineBlade, 1, meta)));
         } else {
             // 如果没有叶片，通常转子无法通过此方式合成，或者你可以添加一个兜底合成
             // 目前根据用户要求，如果不为 true 则不注册关联物品，这里我们也跳过合成

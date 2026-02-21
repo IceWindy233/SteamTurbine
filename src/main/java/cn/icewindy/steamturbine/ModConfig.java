@@ -100,8 +100,8 @@ public class ModConfig {
 
         public RotorDefinition() {}
 
-        public RotorDefinition(String comment, String itemName, int overflow, int optimalFlow, float efficiency, int durability,
-            String icon, String bladeIcon, boolean infiniteDurability, boolean hasBlade) {
+        public RotorDefinition(String comment, String itemName, int overflow, int optimalFlow, float efficiency,
+            int durability, String icon, String bladeIcon, boolean infiniteDurability, boolean hasBlade) {
             this.comment = comment;
             this.itemName = itemName;
             this.overflow = overflow;
@@ -279,7 +279,7 @@ public class ModConfig {
         if (rotorDefinitions.isEmpty()) {
             rotorDefinitions.addAll(defaultRotors());
         }
-        
+
         // Save back the current (potentially new) definitions to include help text/comments
         saveRotorConfig(rotorConfigFile, rotorDefinitions);
     }
@@ -370,7 +370,17 @@ public class ModConfig {
         if (icon != null && icon.isEmpty()) {
             icon = null;
         }
-        return new RotorDefinition(def.comment, name, overflow, optimalFlow, efficiency, durability, icon, def.bladeIcon, def.infiniteDurability, def.hasBlade);
+        return new RotorDefinition(
+            def.comment,
+            name,
+            overflow,
+            optimalFlow,
+            efficiency,
+            durability,
+            icon,
+            def.bladeIcon,
+            def.infiniteDurability,
+            def.hasBlade);
     }
 
     private static List<RotorDefinition> defaultRotors() {
