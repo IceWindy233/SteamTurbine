@@ -2,10 +2,16 @@ itemGroup.steamturbine=Steam Turbine
 
 tile.steamturbine.turbine_casing.0.name=Turbine Casing
 tile.steamturbine.turbine_controller.name=Turbine Controller
-tile.steamturbine.input_hatch.name=Input Hatch
-tile.steamturbine.output_hatch.name=Output Hatch
 tile.steamturbine.dynamo_hatch.name=Dynamo Hatch
 tile.steamturbine.redstone_control.name=Redstone Control Block
+tile.steamturbine.heat_exchanger_casing.name=Heat Exchanger Casing
+tile.steamturbine.heat_exchanger_pipe_casing.name=Heat Exchanger Pipe Casing
+tile.steamturbine.heat_exchanger_controller.name=Large Heat Exchanger Controller
+tile.steamturbine.fluid_input_hatch.name=Fluid Input Hatch
+tile.steamturbine.fluid_output_hatch.name=Fluid Output Hatch
+tile.steamturbine.item_input_bus.name=Item Input Bus
+tile.steamturbine.item_output_bus.name=Item Output Bus
+tile.steamturbine.flow_limiter.name=Fluid Flow Limiter
 
 item.steamturbine.turbine_rotor.iron.name=Iron Turbine Rotor
 item.steamturbine.turbine_rotor.steel.name=Steel Turbine Rotor
@@ -45,3 +51,8 @@ steamturbine.gui.value.yes=YES
 steamturbine.gui.value.no=NO
 steamturbine.gui.value.ok=OK
 steamturbine.gui.label.output=Output
+steamturbine.flow_limiter.fluid=Fluid
+steamturbine.flow_limiter.amount=Stored
+steamturbine.flow_limiter.limit=Limit
+steamturbine.flow_limiter.sides=Side I/O
+steamturbine.fluid_input_hatch.limit=Input Hatch Flow Limit

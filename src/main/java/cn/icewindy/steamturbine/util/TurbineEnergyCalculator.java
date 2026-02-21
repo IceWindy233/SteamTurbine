@@ -5,7 +5,7 @@ package cn.icewindy.steamturbine.util;
  * 处理蒸汽流量、效率、溢流倍数到EU/t的转换。
  *
  * 转换公式：
- * baseEU = actualFlow(L/t)
+ * baseEU = actualFlow(mB/t)
  *
  * 当流量等于最优值时：
  * EU/t = actualFlow × efficiency × 0.5
@@ -23,9 +23,9 @@ public class TurbineEnergyCalculator {
     /**
      * 计算涡轮的基础EU产出。
      *
-     * @param actualFlow         实际蒸汽流量 (L/t，即 mB/t)
+     * @param actualFlow         实际蒸汽流量 (mB/t)
      * @param efficiency         转子效率 (0.0 ~ 1.0)
-     * @param optimalFlow        最优流量 (L/t)
+     * @param optimalFlow        最优流量 (mB/t)
      * @param overflowMultiplier 溢流等级 (1 ~ 3)
      * @return 产出的 EU/t 能量
      */
@@ -85,7 +85,7 @@ public class TurbineEnergyCalculator {
      * 计算蒸汽冷凝后的蒸馏水产出量。
      * 采用余数保留策略，避免浮点精度问题。
      *
-     * @param steamL      处理的蒸汽量 (L/t)
+     * @param steamL      处理的蒸汽量 (mB/t)
      * @param excessWater 上一tick的余数 (mB)
      * @return [产出的蒸馏水 (mB), 新的余数 (mB)]
      */

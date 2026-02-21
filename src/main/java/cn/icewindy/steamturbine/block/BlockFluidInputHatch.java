@@ -5,18 +5,17 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
 import cn.icewindy.steamturbine.SteamTurbineMod;
-import cn.icewindy.steamturbine.tileentity.TileEntityInputHatch;
+import cn.icewindy.steamturbine.tileentity.TileEntityFluidInputHatch;
 
-public class BlockInputHatch extends BlockHatch {
+public class BlockFluidInputHatch extends BlockHatch {
 
-    public BlockInputHatch() {
-        super();
-        setBlockName("steamturbine.input_hatch");
+    public BlockFluidInputHatch() {
+        setBlockName("steamturbine.fluid_input_hatch");
     }
 
     @Override
     public TileEntity createNewTileEntity(World world, int meta) {
-        return new TileEntityInputHatch();
+        return new TileEntityFluidInputHatch();
     }
 
     @Override
@@ -26,6 +25,6 @@ public class BlockInputHatch extends BlockHatch {
 
     @Override
     protected int getGuiId() {
-        return 1;
+        return 7;
     }
 }

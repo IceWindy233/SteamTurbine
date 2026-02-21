@@ -55,8 +55,8 @@ public class TileEntityTurbineController extends TileEntity implements IEnergySo
     private int facing = 2;
 
     // --- Hatch Lists ---
-    private ArrayList<TileEntityInputHatch> inputHatches = new ArrayList<>();
-    private ArrayList<TileEntityOutputHatch> outputHatches = new ArrayList<>();
+    private ArrayList<TileEntityFluidInputHatch> inputHatches = new ArrayList<>();
+    private ArrayList<TileEntityFluidOutputHatch> outputHatches = new ArrayList<>();
     private ArrayList<TileEntityDynamoHatch> dynamoHatches = new ArrayList<>();
     private ArrayList<int[]> redstoneControlBlocks = new ArrayList<>();
 
@@ -71,6 +71,9 @@ public class TileEntityTurbineController extends TileEntity implements IEnergySo
     private int guiSyncTimer = 0;
     private long recipesDone = 0;
     private boolean redstonePowered = false;
+    private int rotorWearTickAccum = 0;
+    private int rotorWearFlowAccum = 0;
+    private boolean rotorWearOverflowSeen = false;
 
     @SideOnly(Side.CLIENT)
     private TurbineSound activeSound;
@@ -93,7 +96,7 @@ public class TileEntityTurbineController extends TileEntity implements IEnergySo
         redstoneControlBlocks.clear();
     }
 
-    public void addInputHatch(TileEntityInputHatch hatch) {
+    public void addInputHatch(TileEntityFluidInputHatch hatch) {
         inputHatches.add(hatch);
     }
 
@@ -101,7 +104,7 @@ public class TileEntityTurbineController extends TileEntity implements IEnergySo
         dynamoHatches.add(hatch);
     }
 
-    public void addOutputHatch(TileEntityOutputHatch hatch) {
+    public void addOutputHatch(TileEntityFluidOutputHatch hatch) {
         outputHatches.add(hatch);
     }
 
@@ -141,12 +144,14 @@ public class TileEntityTurbineController extends TileEntity implements IEnergySo
 
         if (!redstonePowered) {
             // 2. 从 Hatch 获取流体
-            for (TileEntityInputHatch hatch : inputHatches) {
+            for (TileEntityFluidInputHatch hatch : inputHatches) {
                 if (hatch.isInvalid()) continue;
-                FluidStack fs = hatch.getFluid();
+                FluidStack fs = hatch.drain(ForgeDirection.UNKNOWN, hatch.getMaxFlowPerTick(), false);
                 if (fs != null && fs.amount > 0 && TurbineFluidHandler.isValidTurbineFluid(fs)) {
                     int filled = inputTank.fill(fs, true);
-                    hatch.drain(ForgeDirection.UNKNOWN, filled, true);
+                    if (filled > 0) {
+                        hatch.drain(ForgeDirection.UNKNOWN, filled, true);
+                    }
                     if (inputTank.getFluidAmount() >= inputTank.getCapacity()) break;
                 }
             }
@@ -173,7 +178,7 @@ public class TileEntityTurbineController extends TileEntity implements IEnergySo
 
         // 5. 输出蒸馏水到 Output Hatch
         if (outputTank.getFluidAmount() > 0 && !outputHatches.isEmpty()) {
-            for (TileEntityOutputHatch hatch : outputHatches) {
+            for (TileEntityFluidOutputHatch hatch : outputHatches) {
                 if (hatch == null || hatch.isInvalid()) {
                     continue;
                 }
@@ -204,6 +209,9 @@ public class TileEntityTurbineController extends TileEntity implements IEnergySo
         } else if (currentSpeed > 0) {
             currentSpeed = Math.max(0, currentSpeed - 100); // Faster decay if just stopped
         }
+        rotorWearTickAccum = 0;
+        rotorWearFlowAccum = 0;
+        rotorWearOverflowSeen = false;
         lastEUOutput = 0;
         lastSteamConsumed = 0;
         currentEfficiency = 0;
@@ -287,17 +295,29 @@ public class TileEntityTurbineController extends TileEntity implements IEnergySo
             recipesDone++;
         }
 
-        // 处理转子磨损
+        // 处理转子磨损（每 20 tick 结算一次，耐久按秒跳变）
         if (actualConsumed > 0) {
-            int baseDamage = 1 + (actualConsumed / 1000);
-            if (actualConsumed > optimalFlow) baseDamage += 1;
+            rotorWearTickAccum++;
+            rotorWearFlowAccum += actualConsumed;
+            if (actualConsumed > optimalFlow) {
+                rotorWearOverflowSeen = true;
+            }
+            if (rotorWearTickAccum >= 20) {
+                int avgConsumed = rotorWearFlowAccum / rotorWearTickAccum;
+                int baseDamage = 1 + (avgConsumed / 1000);
+                if (rotorWearOverflowSeen) baseDamage += 1;
 
-            boolean broken = ItemTurbineRotor.applyDamage(rotorSlot, baseDamage);
-            if (broken) {
-                rotorSlot = null;
-                currentSpeed = 0;
-                if (ModConfig.rotorBreakExplosion) {
-                    worldObj.createExplosion(null, xCoord, yCoord, zCoord, 2.0f, true);
+                boolean broken = ItemTurbineRotor.applyDamage(rotorSlot, baseDamage);
+                rotorWearTickAccum = 0;
+                rotorWearFlowAccum = 0;
+                rotorWearOverflowSeen = false;
+
+                if (broken) {
+                    rotorSlot = null;
+                    currentSpeed = 0;
+                    if (ModConfig.rotorBreakExplosion) {
+                        worldObj.createExplosion(null, xCoord, yCoord, zCoord, 2.0f, true);
+                    }
                 }
             }
         }
@@ -751,8 +771,8 @@ public class TileEntityTurbineController extends TileEntity implements IEnergySo
             StatCollector.translateToLocal(
                 "steamturbine.info.energy") + ": " + displayStored + " EU / " + displayCapacity + " EU",
             StatCollector.translateToLocal(
-                "steamturbine.info.flow") + ": " + lastSteamConsumed + " L/t (" + fitting + ")",
-            StatCollector.translateToLocal("steamturbine.info.fuel") + ": " + inputTank.getFluidAmount() + " L",
+                "steamturbine.info.flow") + ": " + lastSteamConsumed + " mB/t (" + fitting + ")",
+            StatCollector.translateToLocal("steamturbine.info.fuel") + ": " + inputTank.getFluidAmount() + " mB",
             StatCollector.translateToLocal("steamturbine.info.damage") + ": " + getRotorDamagePercent() + "%" };
     }
 
@@ -775,6 +795,9 @@ public class TileEntityTurbineController extends TileEntity implements IEnergySo
         nbt.setInteger("waterRemainder", waterCondensationRemainder);
         nbt.setLong("recipesDone", recipesDone);
         nbt.setBoolean("redstonePowered", redstonePowered);
+        nbt.setInteger("rotorWearTickAccum", rotorWearTickAccum);
+        nbt.setInteger("rotorWearFlowAccum", rotorWearFlowAccum);
+        nbt.setBoolean("rotorWearOverflowSeen", rotorWearOverflowSeen);
 
         NBTTagCompound inputNBT = new NBTTagCompound();
         inputTank.writeToNBT(inputNBT);
@@ -801,6 +824,9 @@ public class TileEntityTurbineController extends TileEntity implements IEnergySo
         waterCondensationRemainder = nbt.getInteger("waterRemainder");
         recipesDone = nbt.getLong("recipesDone");
         redstonePowered = nbt.getBoolean("redstonePowered");
+        rotorWearTickAccum = nbt.getInteger("rotorWearTickAccum");
+        rotorWearFlowAccum = nbt.getInteger("rotorWearFlowAccum");
+        rotorWearOverflowSeen = nbt.getBoolean("rotorWearOverflowSeen");
 
         inputTank.readFromNBT(nbt.getCompoundTag("inputTank"));
         outputTank.readFromNBT(nbt.getCompoundTag("outputTank"));

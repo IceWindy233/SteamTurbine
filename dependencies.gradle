@@ -35,29 +35,4 @@
  */
 dependencies {
     api("net.industrial-craft:industrialcraft-2:2.2.828-experimental:dev")
-
-    // Optional local test mods (CoFH/Thermal).
-    // Supported locations:
-    //  - run/mods
-    //  - run/client/mods
-    // Missing files are skipped to avoid breaking clean build/reobf.
-    def optionalDevJars = [
-        "CoFHCore-[1.7.10]3.1.4-329.jar",
-        "ThermalFoundation-[1.7.10]1.2.6-118.jar",
-        "ThermalExpansion-[1.7.10]4.1.5-248.jar",
-        "ThermalDynamics-[1.7.10]1.2.1-172.jar",
-        "MyCTMLib-v1.2.5_28x.jar",
-        "+unimixins-all-1.7.10-0.1.23.jar"
-    ]
-    def optionalDevDirs = [file("run/mods"), file("run/client/mods")]
-
-    optionalDevJars.each { jarName ->
-        File jarFile = optionalDevDirs.collect { new File(it, jarName) }.find { it.exists() && it.isFile() }
-        if (jarFile != null) {
-            runtimeOnlyNonPublishable(rfg.deobf(project.files(jarFile)))
-            logger.lifecycle("[deps] Loaded optional dev mod: ${jarFile}")
-        } else {
-            logger.lifecycle("[deps] Skip missing optional dev mod: ${jarName}")
-        }
-    }
 }

@@ -4,10 +4,11 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
+import cn.icewindy.steamturbine.inventory.ContainerFlowLimiter;
 import cn.icewindy.steamturbine.inventory.ContainerFluidHatch;
 import cn.icewindy.steamturbine.inventory.ContainerTurbine;
-import cn.icewindy.steamturbine.tileentity.TileEntityInputHatch;
-import cn.icewindy.steamturbine.tileentity.TileEntityOutputHatch;
+import cn.icewindy.steamturbine.tileentity.TileEntityFluidInputHatch;
+import cn.icewindy.steamturbine.tileentity.TileEntityFluidOutputHatch;
 import cn.icewindy.steamturbine.tileentity.TileEntityTurbineController;
 import cpw.mods.fml.common.network.IGuiHandler;
 
@@ -20,9 +21,12 @@ public class GuiHandler implements IGuiHandler {
             if (te instanceof TileEntityTurbineController) {
                 return new ContainerTurbine(player.inventory, (TileEntityTurbineController) te);
             }
-        } else if (ID == 1 || ID == 2) {
+        } else if (ID == 7 || ID == 8) {
             TileEntity te = world.getTileEntity(x, y, z);
-            if (te instanceof TileEntityInputHatch || te instanceof TileEntityOutputHatch) {
+            if (ID == 7 && te instanceof TileEntityFluidInputHatch) {
+                return new ContainerFlowLimiter(player.inventory, (TileEntityFluidInputHatch) te);
+            }
+            if (ID == 8 && te instanceof TileEntityFluidOutputHatch) {
                 return new ContainerFluidHatch(player.inventory, te);
             }
         }
@@ -36,15 +40,15 @@ public class GuiHandler implements IGuiHandler {
             if (te instanceof TileEntityTurbineController) {
                 return new GuiTurbine(player.inventory, (TileEntityTurbineController) te);
             }
-        } else if (ID == 1) {
+        } else if (ID == 7) {
             TileEntity te = world.getTileEntity(x, y, z);
-            if (te instanceof TileEntityInputHatch) {
-                return new GuiFluidHatch(player.inventory, te, "tile.steamturbine.input_hatch.name");
+            if (te instanceof TileEntityFluidInputHatch) {
+                return new GuiFlowLimiter(player.inventory, (TileEntityFluidInputHatch) te);
             }
-        } else if (ID == 2) {
+        } else if (ID == 8) {
             TileEntity te = world.getTileEntity(x, y, z);
-            if (te instanceof TileEntityOutputHatch) {
-                return new GuiFluidHatch(player.inventory, te, "tile.steamturbine.output_hatch.name");
+            if (te instanceof TileEntityFluidOutputHatch) {
+                return new GuiFluidHatch(player.inventory, te, "tile.steamturbine.fluid_output_hatch.name");
             }
         }
         return null;

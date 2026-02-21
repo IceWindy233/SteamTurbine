@@ -67,13 +67,13 @@ public class GuiTurbine extends GuiContainer {
             leftX,
             y0 + line * 3,
             tr("steamturbine.gui.label.flow"),
-            tile.getLastSteamConsumed() + " L/t",
+            tile.getLastSteamConsumed() + " mB/t",
             TEXT_COLOR);
         drawInfoLine(
             leftX,
             y0 + line * 4,
             tr("steamturbine.gui.label.fuel"),
-            tile.inputTank.getFluidAmount() + " L",
+            tile.inputTank.getFluidAmount() + " mB",
             TEXT_COLOR);
 
         drawRightInfoLine(

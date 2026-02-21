@@ -194,7 +194,7 @@ public class ItemTurbineRotor extends Item {
 
         tooltip.add("\u00a77Material: \u00a7f" + ModConfig.getRotorItemName(meta));
         tooltip.add("\u00a77Efficiency: \u00a7a" + String.format("%.0f%%", stats.efficiency * 100));
-        tooltip.add("\u00a77Optimal Flow: \u00a7b" + stats.optimalFlow + " L/t");
+        tooltip.add("\u00a77Optimal Flow: \u00a7b" + stats.optimalFlow + " mB/t");
         tooltip.add("\u00a77Overflow Level: \u00a7e" + stats.overflowMultiplier);
         if (ModConfig.isRotorInfiniteDurability(meta)) {
             tooltip.add("\u00a77Durability: \u00a7aInfinite");

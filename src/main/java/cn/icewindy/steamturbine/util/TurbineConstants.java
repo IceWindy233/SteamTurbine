@@ -24,10 +24,10 @@ public class TurbineConstants {
         public static final int TIER_TITANIUM = 2;
 
         // 每个等级的基础参数
-        public static final float[] EFFICIENCY = { 0.80f, 0.90f, 1.00f };
-        public static final int[] OPTIMAL_FLOW = { 400, 800, 1600 }; // L/t
+        public static final float[] EFFICIENCY = { 1.00f, 1.15f, 1.30f };
+        public static final int[] OPTIMAL_FLOW = { 600, 1200, 2400 }; // mB/t
         public static final int[] OVERFLOW_MULTIPLIER = { 1, 2, 3 };
-        public static final int[] DURABILITY = { 4000, 8000, 16000 };
+        public static final int[] DURABILITY = { 6000, 12000, 24000 };
 
         /**
          * 获取指定等级的效率。
@@ -170,7 +170,7 @@ public class TurbineConstants {
     public static final int ABSOLUTE_MAX_OUTPUT = 32768; // Avoid overflow
 
     /** 最大允许的流量（安全上限，防止整数溢出） */
-    public static final int ABSOLUTE_MAX_FLOW = 100000; // 100k L/t
+    public static final int ABSOLUTE_MAX_FLOW = 100000; // 100k mB/t
 
     // ==================== 客户端渲染参数 ====================
 

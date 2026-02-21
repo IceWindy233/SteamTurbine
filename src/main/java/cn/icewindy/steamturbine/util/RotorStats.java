@@ -11,7 +11,7 @@ public class RotorStats {
     /** 基础效率 (0.0~1.0) */
     public final float efficiency;
 
-    /** 最优蒸汽流量 (L/t) */
+    /** 最优蒸汽流量 (mB/t) */
     public final int optimalFlow;
 
     /** 溢流等级 (1~3)，决定允许超过最优流量的倍数 */
@@ -26,7 +26,7 @@ public class RotorStats {
     /**
      * 根据转子 metadata 获取对应的属性。
      *
-     * | 材质 | Meta | 效率 | 最优流量(L/t) | 溢流等级 |
+     * | 材质 | Meta | 效率 | 最优流量(mB/t) | 溢流等级 |
      * |------|------|-------|-------------|---------|
      * | 铁 | 0 | 0.80 | 400 | 1 |
      * | 钢 | 1 | 0.90 | 800 | 2 |

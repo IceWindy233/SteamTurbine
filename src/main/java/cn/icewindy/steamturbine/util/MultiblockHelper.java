@@ -7,7 +7,7 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 import cn.icewindy.steamturbine.registry.ModBlocks;
 import cn.icewindy.steamturbine.tileentity.TileEntityDynamoHatch;
-import cn.icewindy.steamturbine.tileentity.TileEntityInputHatch;
+import cn.icewindy.steamturbine.tileentity.TileEntityFluidInputHatch;
 import cn.icewindy.steamturbine.tileentity.TileEntityTurbineController;
 
 /**
@@ -75,8 +75,8 @@ public class MultiblockHelper {
 
                     if (block == ModBlocks.turbineCasing) {
                         isValidPart = true;
-                    } else if (te instanceof TileEntityInputHatch) {
-                        if (controller != null) controller.addInputHatch((TileEntityInputHatch) te);
+                    } else if (te instanceof TileEntityFluidInputHatch) {
+                        if (controller != null) controller.addInputHatch((TileEntityFluidInputHatch) te);
                         isValidPart = true;
                     } else if (te instanceof TileEntityDynamoHatch) {
                         if (controller != null) controller.addDynamoHatch((TileEntityDynamoHatch) te);

@@ -24,6 +24,7 @@ import com.google.gson.annotations.SerializedName;
 public class ModConfig {
 
     public static final String CONFIG_FOLDER_NAME = "steamturbine";
+    private static final String CATEGORY_LHE = "largeHeatExchanger";
 
     /** 最大输出电压 (EU/t)，默认 512 (HV) */
     public static int maxOutputVoltage = 512;
@@ -42,6 +43,18 @@ public class ModConfig {
 
     /** 转子损坏时是否爆炸 */
     public static boolean rotorBreakExplosion = true;
+
+    /** 大型热交换基础过热阈值（mB/t） */
+    public static int lheBaseThresholdPerTick = 800;
+
+    /** 大型热交换基础蒸汽倍率，最终输出约为 consume * 倍率 * 2 */
+    public static float lheBaseSteamMultiplier = 20.0f;
+
+    /** 大型热交换缺水干烧爆炸倒计时（tick） */
+    public static int lheDryHeatMaxTicks = 2000;
+
+    /** 大型热交换是否允许产出过热蒸汽 */
+    public static boolean lheEnableSuperheatedOutput = false;
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting()
         .create();
@@ -179,6 +192,42 @@ public class ModConfig {
             Configuration.CATEGORY_GENERAL,
             true,
             "Whether turbine explodes when rotor breaks");
+
+        lheBaseThresholdPerTick = config.getInt(
+            "baseThresholdPerTick",
+            CATEGORY_LHE,
+            800,
+            1,
+            200000,
+            "Large Heat Exchanger base superheated threshold (mB/t) before coolant multiplier");
+
+        String multiplierRaw = config.getString(
+            "baseSteamMultiplier",
+            CATEGORY_LHE,
+            "20.0",
+            "Large Heat Exchanger base steam multiplier (final output is consume * multiplier * 2)");
+        try {
+            lheBaseSteamMultiplier = Float.parseFloat(multiplierRaw);
+        } catch (Exception ignored) {
+            lheBaseSteamMultiplier = 20.0f;
+        }
+        if (lheBaseSteamMultiplier <= 0.0f) {
+            lheBaseSteamMultiplier = 20.0f;
+        }
+
+        lheDryHeatMaxTicks = config.getInt(
+            "dryHeatMaxTicks",
+            CATEGORY_LHE,
+            2000,
+            20,
+            200000,
+            "Large Heat Exchanger dry-heat explosion timer in ticks");
+
+        lheEnableSuperheatedOutput = config.getBoolean(
+            "enableSuperheatedOutput",
+            CATEGORY_LHE,
+            false,
+            "Whether Large Heat Exchanger can output superheated steam");
 
         initRotorConfigPath(effectiveConfigFile);
         initResourcePackTemplate();

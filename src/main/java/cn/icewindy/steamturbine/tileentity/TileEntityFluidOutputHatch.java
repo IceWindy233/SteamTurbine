@@ -13,14 +13,11 @@ import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidHandler;
 
 import cn.icewindy.steamturbine.ModConfig;
+import cn.icewindy.steamturbine.api.IFluidDisplayHatch;
 
-public class TileEntityOutputHatch extends TileEntity implements IFluidHandler {
+public class TileEntityFluidOutputHatch extends TileEntity implements IFluidHandler, IFluidDisplayHatch {
 
-    private final FluidTank tank;
-
-    public TileEntityOutputHatch() {
-        this.tank = new FluidTank(ModConfig.tankCapacity);
-    }
+    private final FluidTank tank = new FluidTank(ModConfig.tankCapacity);
 
     @Override
     public void readFromNBT(NBTTagCompound nbt) {
@@ -36,19 +33,11 @@ public class TileEntityOutputHatch extends TileEntity implements IFluidHandler {
 
     @Override
     public int fill(ForgeDirection from, FluidStack resource, boolean doFill) {
-        if (resource == null || !isAllowedOutputFluid(resource.getFluid())) {
-            return 0;
-        }
-        if (from != ForgeDirection.UNKNOWN) {
+        if (from != ForgeDirection.UNKNOWN || resource == null) {
             return 0;
         }
         int filled = tank.fill(resource, doFill);
-        if (doFill && filled > 0) {
-            markDirty();
-            if (worldObj != null && !worldObj.isRemote) {
-                worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
-            }
-        }
+        onChanged(doFill, filled);
         return filled;
     }
 
@@ -58,30 +47,20 @@ public class TileEntityOutputHatch extends TileEntity implements IFluidHandler {
             return null;
         }
         FluidStack drained = tank.drain(resource.amount, doDrain);
-        if (doDrain && drained != null && drained.amount > 0) {
-            markDirty();
-            if (worldObj != null && !worldObj.isRemote) {
-                worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
-            }
-        }
+        onChanged(doDrain, drained == null ? 0 : drained.amount);
         return drained;
     }
 
     @Override
     public FluidStack drain(ForgeDirection from, int maxDrain, boolean doDrain) {
         FluidStack drained = tank.drain(maxDrain, doDrain);
-        if (doDrain && drained != null && drained.amount > 0) {
-            markDirty();
-            if (worldObj != null && !worldObj.isRemote) {
-                worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
-            }
-        }
+        onChanged(doDrain, drained == null ? 0 : drained.amount);
         return drained;
     }
 
     @Override
     public boolean canFill(ForgeDirection from, Fluid fluid) {
-        return from == ForgeDirection.UNKNOWN && isAllowedOutputFluid(fluid);
+        return from == ForgeDirection.UNKNOWN && fluid != null;
     }
 
     @Override
@@ -94,10 +73,12 @@ public class TileEntityOutputHatch extends TileEntity implements IFluidHandler {
         return new FluidTankInfo[] { tank.getInfo() };
     }
 
+    @Override
     public FluidStack getFluid() {
         return tank.getFluid();
     }
 
+    @Override
     public int getTankCapacity() {
         return tank.getCapacity();
     }
@@ -114,12 +95,11 @@ public class TileEntityOutputHatch extends TileEntity implements IFluidHandler {
         tank.readFromNBT(pkt.func_148857_g());
     }
 
-    private boolean isAllowedOutputFluid(Fluid fluid) {
-        if (fluid == null || fluid.getName() == null) {
-            return false;
+    private void onChanged(boolean changed, int amount) {
+        if (!changed || amount <= 0) return;
+        markDirty();
+        if (worldObj != null && !worldObj.isRemote) {
+            worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
         }
-        String name = fluid.getName()
-            .toLowerCase();
-        return name.contains("distilledwater") || name.equals("water");
     }
 }

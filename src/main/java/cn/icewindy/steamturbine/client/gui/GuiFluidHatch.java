@@ -10,9 +10,8 @@ import net.minecraftforge.fluids.FluidStack;
 import org.lwjgl.opengl.GL11;
 
 import cn.icewindy.steamturbine.SteamTurbineMod;
+import cn.icewindy.steamturbine.api.IFluidDisplayHatch;
 import cn.icewindy.steamturbine.inventory.ContainerFluidHatch;
-import cn.icewindy.steamturbine.tileentity.TileEntityInputHatch;
-import cn.icewindy.steamturbine.tileentity.TileEntityOutputHatch;
 
 public class GuiFluidHatch extends GuiContainer {
 
@@ -66,11 +65,8 @@ public class GuiFluidHatch extends GuiContainer {
     }
 
     private FluidStack getFluid() {
-        if (tile instanceof TileEntityInputHatch) {
-            return ((TileEntityInputHatch) tile).getFluid();
-        }
-        if (tile instanceof TileEntityOutputHatch) {
-            return ((TileEntityOutputHatch) tile).getFluid();
+        if (tile instanceof IFluidDisplayHatch) {
+            return ((IFluidDisplayHatch) tile).getFluid();
         }
         return null;
     }
@@ -81,11 +77,8 @@ public class GuiFluidHatch extends GuiContainer {
     }
 
     private int getCapacity() {
-        if (tile instanceof TileEntityInputHatch) {
-            return ((TileEntityInputHatch) tile).getTankCapacity();
-        }
-        if (tile instanceof TileEntityOutputHatch) {
-            return ((TileEntityOutputHatch) tile).getTankCapacity();
+        if (tile instanceof IFluidDisplayHatch) {
+            return ((IFluidDisplayHatch) tile).getTankCapacity();
         }
         return 0;
     }

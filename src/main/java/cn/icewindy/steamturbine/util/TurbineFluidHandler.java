@@ -166,9 +166,9 @@ public class TurbineFluidHandler {
     /**
      * 计算最大可处理的流体量（基于配置和rotor等级）。
      *
-     * @param optimalFlow        最优流量（L/t）
+     * @param optimalFlow        最优流量（mB/t）
      * @param overflowMultiplier 溢流倍数
-     * @return 最大流量（L/t）
+     * @return 最大流量（mB/t）
      */
     public static int calculateMaxFlow(int optimalFlow, int overflowMultiplier) {
         // 最大流量 = optimalFlow × (1 + 0.5 × overflowMultiplier)
