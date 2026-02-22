@@ -109,8 +109,8 @@ public class ItemTurbineBlade extends Item {
                         ModConfig.setCachedColor(i, color);
                     } else {
                         // Fallback
-                        icons[i] = reg.registerIcon(SteamTurbineMod.MOD_ID + ":blade_" + material.toLowerCase());
-                        useTint[i] = false;
+                        icons[i] = reg.registerIcon(SteamTurbineMod.MOD_ID + ":basicitem/blade");
+                        useTint[i] = true;
                     }
                 }
             }

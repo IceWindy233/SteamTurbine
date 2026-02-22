@@ -145,11 +145,13 @@ public class ItemTurbineRotor extends Item {
                 return stack.getDisplayName();
             }
         }
-        String ingotName = "ingot" + material;
-        List<ItemStack> ores = OreDictionary.getOres(ingotName);
-        if (ores != null && !ores.isEmpty()) {
-            return ores.get(0)
-                .getDisplayName();
+        String[] prefixes = { "ingot", "gem", "", "dust" };
+        for (String prefix : prefixes) {
+            List<ItemStack> ores = OreDictionary.getOres(prefix + material);
+            if (ores != null && !ores.isEmpty()) {
+                return ores.get(0)
+                    .getDisplayName();
+            }
         }
         return material;
     }
@@ -183,15 +185,22 @@ public class ItemTurbineRotor extends Item {
                 icons[i] = reg.registerIcon(SteamTurbineMod.MOD_ID + ":basicitem/rotor");
                 useTint[i] = true;
             } else {
-                if (!net.minecraftforge.oredict.OreDictionary.getOres("ingot" + material)
-                    .isEmpty()) {
+                String[] prefixes = { "ingot", "gem", "", "dust" };
+                boolean found = false;
+                for (String prefix : prefixes) {
+                    if (!OreDictionary.getOres(prefix + material)
+                        .isEmpty()) {
+                        icons[i] = reg.registerIcon(SteamTurbineMod.MOD_ID + ":basicitem/rotor");
+                        useTint[i] = true;
+                        int color = cn.icewindy.steamturbine.util.ColorExtractor.getAverageColor(material);
+                        ModConfig.setCachedColor(i, color);
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
                     icons[i] = reg.registerIcon(SteamTurbineMod.MOD_ID + ":basicitem/rotor");
                     useTint[i] = true;
-                    int color = cn.icewindy.steamturbine.util.ColorExtractor.getAverageColor(material);
-                    ModConfig.setCachedColor(i, color);
-                } else {
-                    icons[i] = reg.registerIcon(SteamTurbineMod.MOD_ID + ":rotor_iron");
-                    useTint[i] = false;
                 }
             }
         }
@@ -250,7 +259,9 @@ public class ItemTurbineRotor extends Item {
         tooltip.add(
             "\u00a77" + StatCollector.translateToLocal("steamturbine.rotor.overflow")
                 + ": \u00a7e"
-                + stats.overflowMultiplier);
+                + (stats.overflowMultiplier == (int) stats.overflowMultiplier
+                    ? String.format("%d", (int) stats.overflowMultiplier)
+                    : stats.overflowMultiplier));
         if (ModConfig.isRotorInfiniteDurability(meta)) {
             tooltip.add(
                 "\u00a77" + StatCollector.translateToLocal("steamturbine.rotor.durability")

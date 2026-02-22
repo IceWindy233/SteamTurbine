@@ -19,9 +19,13 @@ public class ColorExtractor {
     @SideOnly(Side.CLIENT)
     public static int getAverageColor(String materialName) {
         try {
-            String oreName = "ingot" + materialName;
-            List<ItemStack> ores = OreDictionary.getOres(oreName);
-            if (ores.isEmpty()) return 0xFFFFFF;
+            String[] prefixes = { "ingot", "gem", "", "dust" };
+            List<ItemStack> ores = null;
+            for (String prefix : prefixes) {
+                ores = OreDictionary.getOres(prefix + materialName);
+                if (ores != null && !ores.isEmpty()) break;
+            }
+            if (ores == null || ores.isEmpty()) return 0xFFFFFF;
 
             ItemStack stack = ores.get(0);
             if (stack == null || stack.getItem() == null) return 0xFFFFFF;

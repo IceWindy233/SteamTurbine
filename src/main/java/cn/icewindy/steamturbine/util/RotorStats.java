@@ -14,10 +14,10 @@ public class RotorStats {
     /** 最优蒸汽流量 (mB/t) */
     public final int optimalFlow;
 
-    /** 溢流等级 (1~3)，决定允许超过最优流量的倍数 */
-    public final int overflowMultiplier;
+    /** 溢流等级，决定允许超过最优流量的倍数 */
+    public final float overflowMultiplier;
 
-    public RotorStats(float efficiency, int optimalFlow, int overflowMultiplier) {
+    public RotorStats(float efficiency, int optimalFlow, float overflowMultiplier) {
         this.efficiency = efficiency;
         this.optimalFlow = optimalFlow;
         this.overflowMultiplier = overflowMultiplier;

@@ -75,7 +75,7 @@ public class ModConfig {
         public String itemName;
 
         @SerializedName("Overflow")
-        public int overflow;
+        public float overflow;
 
         @SerializedName("OptimalFlow")
         public int optimalFlow;
@@ -100,7 +100,7 @@ public class ModConfig {
 
         public RotorDefinition() {}
 
-        public RotorDefinition(String comment, String itemName, int overflow, int optimalFlow, float efficiency,
+        public RotorDefinition(String comment, String itemName, float overflow, int optimalFlow, float efficiency,
             int durability, String icon, String bladeIcon, boolean infiniteDurability, boolean hasBlade) {
             this.comment = comment;
             this.itemName = itemName;
@@ -278,10 +278,9 @@ public class ModConfig {
 
         if (rotorDefinitions.isEmpty()) {
             rotorDefinitions.addAll(defaultRotors());
+            // Only save if it's empty/missing to provide a valid template
+            saveRotorConfig(rotorConfigFile, rotorDefinitions);
         }
-
-        // Save back the current (potentially new) definitions to include help text/comments
-        saveRotorConfig(rotorConfigFile, rotorDefinitions);
     }
 
     private static void initResourcePackTemplate() {
@@ -362,7 +361,7 @@ public class ModConfig {
         if (name.isEmpty()) {
             name = "Rotor";
         }
-        int overflow = Math.max(1, def.overflow);
+        float overflow = Math.max(1.0f, def.overflow);
         int optimalFlow = Math.max(1, def.optimalFlow);
         float efficiency = def.efficiency <= 0 ? 0.01f : def.efficiency;
         int durability = Math.max(1, def.durability);
@@ -386,11 +385,21 @@ public class ModConfig {
     private static List<RotorDefinition> defaultRotors() {
         List<RotorDefinition> defaults = new ArrayList<RotorDefinition>();
         // If no icon is provided in the config, dynamic tinting will be triggered
-        defaults.add(new RotorDefinition("Basic Iron Rotor", "Iron", 1, 400, 0.80f, 4000, null, null, false, true));
-        defaults
-            .add(new RotorDefinition("Reinforced Steel Rotor", "Steel", 2, 800, 0.90f, 8000, null, null, false, true));
+        defaults.add(new RotorDefinition("Basic Iron Rotor", "Iron", 1.0f, 400, 0.80f, 4000, null, null, false, true));
         defaults.add(
-            new RotorDefinition("Advanced Titanium Rotor", "Titanium", 3, 1600, 1.00f, 16000, null, null, false, true));
+            new RotorDefinition("Reinforced Steel Rotor", "Steel", 2.0f, 800, 0.90f, 8000, null, null, false, true));
+        defaults.add(
+            new RotorDefinition(
+                "Advanced Titanium Rotor",
+                "Titanium",
+                3.0f,
+                1600,
+                1.00f,
+                16000,
+                null,
+                null,
+                false,
+                true));
         return defaults;
     }
 
@@ -428,7 +437,7 @@ public class ModConfig {
         return getRotor(meta).optimalFlow;
     }
 
-    public static int getRotorOverflow(int meta) {
+    public static float getRotorOverflow(int meta) {
         return getRotor(meta).overflow;
     }
 

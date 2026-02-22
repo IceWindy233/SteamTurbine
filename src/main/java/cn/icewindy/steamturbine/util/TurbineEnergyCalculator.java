@@ -26,10 +26,10 @@ public class TurbineEnergyCalculator {
      * @param actualFlow         实际蒸汽流量 (mB/t)
      * @param efficiency         转子效率 (0.0 ~ 1.0)
      * @param optimalFlow        最优流量 (mB/t)
-     * @param overflowMultiplier 溢流等级 (1 ~ 3)
+     * @param overflowMultiplier 溢流因子 (浮点数)
      * @return 产出的 EU/t 能量
      */
-    public static int calculateOutput(int actualFlow, float efficiency, int optimalFlow, int overflowMultiplier) {
+    public static int calculateOutput(int actualFlow, float efficiency, int optimalFlow, float overflowMultiplier) {
         if (actualFlow <= 0 || efficiency <= 0 || optimalFlow <= 0) {
             return 0;
         }
@@ -61,10 +61,10 @@ public class TurbineEnergyCalculator {
      *
      * @param actualFlow         实际流量
      * @param optimalFlow        最优流量
-     * @param overflowMultiplier 溢流倍数
+     * @param overflowMultiplier 溢流因子
      * @return 效率因子 (0.1 ~ 1.0)
      */
-    public static float getOverflowEfficiency(int actualFlow, int optimalFlow, int overflowMultiplier) {
+    public static float getOverflowEfficiency(int actualFlow, int optimalFlow, float overflowMultiplier) {
         if (optimalFlow <= 0) {
             return 0.0f;
         }
@@ -150,20 +150,20 @@ public class TurbineEnergyCalculator {
      * 计算最大允许流量（考虑溢流倍数）。
      *
      * @param optimalFlow        最优流量
-     * @param overflowMultiplier 溢流倍数
+     * @param overflowMultiplier 溢流因子
      * @return 最大流量
      */
-    public static int getMaximumFlow(int optimalFlow, int overflowMultiplier) {
+    public static int getMaximumFlow(int optimalFlow, float overflowMultiplier) {
         return (int) (optimalFlow * (0.5f * overflowMultiplier + 1));
     }
 
     /**
-     * 计算溢流倍数对应的最大允许额外流量百分比。
+     * 计算溢流因子对应的最大允许额外流量百分比。
      *
-     * @param overflowMultiplier 溢流倍数 (1~3)
-     * @return 最大额外流量百分比 (150%/200%/250%)
+     * @param overflowMultiplier 溢流因子
+     * @return 最大额外流量百分比
      */
-    public static float getMaxFlowPercentage(int overflowMultiplier) {
+    public static float getMaxFlowPercentage(float overflowMultiplier) {
         return 0.5f * overflowMultiplier + 1.0f;
     }
 }

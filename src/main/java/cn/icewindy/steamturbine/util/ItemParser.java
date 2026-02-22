@@ -10,7 +10,7 @@ import cpw.mods.fml.common.registry.GameRegistry;
 
 public class ItemParser {
 
-    private static final Pattern STACK_PATTERN = Pattern.compile("<([^:]+):([^:]+):(\\d+)>");
+    private static final Pattern STACK_PATTERN = Pattern.compile("<([^:]+):([^:]+)(?::(\\d+))?>");
 
     public static ItemStack parseStack(String input) {
         if (input == null || !input.startsWith("<") || !input.endsWith(">")) {
@@ -21,9 +21,16 @@ public class ItemParser {
         if (matcher.matches()) {
             String modId = matcher.group(1);
             String itemName = matcher.group(2);
-            int meta = Integer.parseInt(matcher.group(3));
+            String metaStr = matcher.group(3);
+            int meta = (metaStr != null) ? Integer.parseInt(metaStr) : 0;
 
+            // Try finding as Item
             Item item = GameRegistry.findItem(modId, itemName);
+            if (item == null) {
+                // Try lowercase modid as fallback
+                item = GameRegistry.findItem(modId.toLowerCase(), itemName);
+            }
+
             if (item != null) {
                 return new ItemStack(item, 1, meta);
             }
