@@ -467,6 +467,27 @@ public class TileEntityHeatExchangerController extends TileEntity implements IFl
         return formed && lastHotFluidConsumed > 0;
     }
 
+    // Client GUI sync setters
+    public void setGuiFormed(boolean formed) {
+        this.formed = formed;
+    }
+
+    public void setGuiSuperheated(boolean superheated) {
+        this.superheated = superheated;
+    }
+
+    public void setGuiSuperheatedThreshold(int superheatedThreshold) {
+        this.superheatedThreshold = superheatedThreshold;
+    }
+
+    public void setGuiLastHotFluidConsumed(int lastHotFluidConsumed) {
+        this.lastHotFluidConsumed = lastHotFluidConsumed;
+    }
+
+    public void setGuiLastSteamProduced(int lastSteamProduced) {
+        this.lastSteamProduced = lastSteamProduced;
+    }
+
     public String[] getInfoLines() {
         boolean wouldSuperheatAtCurrentRate = lastHotFluidConsumed >= superheatedThreshold && superheatedThreshold > 0;
         return new String[] { "[大型热交换] 成型: " + (formed ? "是" : "否"), "[大型热交换] 过热蒸汽模式: " + (superheated ? "是" : "否"),
