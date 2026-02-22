@@ -17,7 +17,7 @@ public class GuiFluidHatch extends GuiContainer {
 
     private static final ResourceLocation GUI_TEXTURE = new ResourceLocation(
         SteamTurbineMod.MOD_ID,
-        "textures/gui/gui_normal.png");
+        "textures/gui/gui_fluid_hatch.png");
     private final TileEntity tile;
     private final String titleKey;
 
@@ -26,12 +26,12 @@ public class GuiFluidHatch extends GuiContainer {
         this.tile = tile;
         this.titleKey = titleKey;
         this.xSize = 178;
-        this.ySize = 171;
+        this.ySize = 182;
     }
 
     @Override
     protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
-        this.fontRendererObj.drawString(StatCollector.translateToLocal(titleKey), 8, 6, 0x404040);
+        this.fontRendererObj.drawString(StatCollector.translateToLocal(titleKey), 8, 4, 0x404040);
 
         FluidStack fluid = getFluid();
         int amount = getAmount();
@@ -40,18 +40,18 @@ public class GuiFluidHatch extends GuiContainer {
             : fluid.getLocalizedName();
 
         this.fontRendererObj
-            .drawString(StatCollector.translateToLocal("steamturbine.gui.fluid") + ": " + fluidName, 8, 22, 0x404040);
+            .drawString(StatCollector.translateToLocal("steamturbine.gui.fluid") + ": " + fluidName, 12, 22, 0x404040);
         this.fontRendererObj.drawString(
             StatCollector.translateToLocal("steamturbine.gui.amount") + ": " + amount + " mB",
-            8,
+            12,
             34,
             0x404040);
         this.fontRendererObj.drawString(
             StatCollector.translateToLocal("steamturbine.gui.capacity") + ": " + capacity + " mB",
-            8,
+            12,
             46,
             0x404040);
-        this.fontRendererObj.drawString(StatCollector.translateToLocal("container.inventory"), 9, 77, 0x404040);
+        this.fontRendererObj.drawString(StatCollector.translateToLocal("container.inventory"), 8, 90, 0x404040);
     }
 
     @Override

@@ -14,16 +14,16 @@ public class ContainerFluidHatch extends Container {
     public ContainerFluidHatch(InventoryPlayer playerInv, TileEntity tile) {
         this.tile = tile;
 
-        // Vanilla player inventory layout
+        // Vanilla player inventory layout shifted for 182px height
         for (int i = 0; i < 3; ++i) {
             for (int j = 0; j < 9; ++j) {
-                this.addSlotToContainer(new Slot(playerInv, j + i * 9 + 9, 9 + j * 18, 89 + i * 18));
+                this.addSlotToContainer(new Slot(playerInv, j + i * 9 + 9, 9 + j * 18, 100 + i * 18));
             }
         }
 
         // Hotbar
         for (int i = 0; i < 9; ++i) {
-            this.addSlotToContainer(new Slot(playerInv, i, 9 + i * 18, 147));
+            this.addSlotToContainer(new Slot(playerInv, i, 9 + i * 18, 158));
         }
     }
 

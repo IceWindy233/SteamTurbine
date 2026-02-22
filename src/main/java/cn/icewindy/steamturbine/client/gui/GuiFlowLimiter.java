@@ -17,7 +17,7 @@ public class GuiFlowLimiter extends GuiContainer {
 
     private static final ResourceLocation GUI_TEXTURE = new ResourceLocation(
         SteamTurbineMod.MOD_ID,
-        "textures/gui/gui_flow_limiter.png");
+        "textures/gui/gui_fluid_hatch.png");
     private static final ResourceLocation BUTTON_TEXTURE = new ResourceLocation(
         SteamTurbineMod.MOD_ID,
         "textures/gui/button.png");
