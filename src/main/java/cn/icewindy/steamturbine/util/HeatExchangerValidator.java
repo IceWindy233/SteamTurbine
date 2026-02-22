@@ -58,12 +58,13 @@ public final class HeatExchangerValidator {
         int cx = controller.xCoord;
         int cy = controller.yCoord;
         int cz = controller.zCoord;
-        
+
         // Remove strictly by identity AND by coordinate matches to clear stale TE instances
-        occupiedBlocks.entrySet().removeIf(entry -> {
-            TileEntityHeatExchangerController v = entry.getValue();
-            return v == controller || (v.xCoord == cx && v.yCoord == cy && v.zCoord == cz);
-        });
+        occupiedBlocks.entrySet()
+            .removeIf(entry -> {
+                TileEntityHeatExchangerController v = entry.getValue();
+                return v == controller || (v.xCoord == cx && v.yCoord == cy && v.zCoord == cz);
+            });
     }
 
     public static class ValidationResult {
@@ -110,11 +111,17 @@ public final class HeatExchangerValidator {
             TileEntityHeatExchangerController owner = getControllerAt(coords.posX, coords.posY, coords.posZ);
             if (owner != null && !owner.isInvalid()) {
                 // Coordinate-based identity check to ignore stale TE instances at the same position
-                boolean isSameMachine = (owner == controller) || 
-                                       (owner.xCoord == cx && owner.yCoord == cy && owner.zCoord == cz);
+                boolean isSameMachine = (owner == controller)
+                    || (owner.xCoord == cx && owner.yCoord == cy && owner.zCoord == cz);
                 if (!isSameMachine) {
-                    String error = String.format("Overlap at (%d, %d, %d) with controller at (%d, %d, %d)", 
-                        coords.posX, coords.posY, coords.posZ, owner.xCoord, owner.yCoord, owner.zCoord);
+                    String error = String.format(
+                        "Overlap at (%d, %d, %d) with controller at (%d, %d, %d)",
+                        coords.posX,
+                        coords.posY,
+                        coords.posZ,
+                        owner.xCoord,
+                        owner.yCoord,
+                        owner.zCoord);
                     return new ValidationResult(false, error, 0).setBounds(minX, minY, minZ, maxX, maxY, maxZ);
                 }
             }
@@ -162,7 +169,12 @@ public final class HeatExchangerValidator {
                         steamOutputCount[0]++;
                         return null;
                     }
-                    return String.format("Invalid block at (%d, %d, %d): %s", cell.worldX, cell.worldY, cell.worldZ, cell.block.getLocalizedName());
+                    return String.format(
+                        "Invalid block at (%d, %d, %d): %s",
+                        cell.worldX,
+                        cell.worldY,
+                        cell.worldZ,
+                        cell.block.getLocalizedName());
                 default:
                     return "Unknown template symbol";
             }

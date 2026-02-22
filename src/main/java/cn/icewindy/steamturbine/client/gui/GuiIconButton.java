@@ -26,22 +26,33 @@ public class GuiIconButton extends GuiButton {
     @Override
     public void drawButton(Minecraft mc, int mouseX, int mouseY) {
         if (this.visible) {
-            mc.getTextureManager().bindTexture(texture);
+            mc.getTextureManager()
+                .bindTexture(texture);
             GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-            
-            this.field_146123_n = mouseX >= this.xPosition && mouseY >= this.yPosition && mouseX < this.xPosition + this.width && mouseY < this.yPosition + this.height;
+
+            this.field_146123_n = mouseX >= this.xPosition && mouseY >= this.yPosition
+                && mouseX < this.xPosition + this.width
+                && mouseY < this.yPosition + this.height;
             int hoverState = this.getHoverState(this.field_146123_n);
             boolean isPressed = this.field_146123_n && org.lwjgl.input.Mouse.isButtonDown(0);
 
             // 贴图参数
             int texW = 200;
             int texH = 60;
-            int vBase = v; 
+            int vBase = v;
             if (isPressed) vBase += 40;
             else if (hoverState == 2) vBase += 20;
 
             // 1. 核心填充区 (采样贴图核心 W3H3-W195H15)
-            drawCustomRect(this.xPosition + 2, this.yPosition + 2, 3, vBase + 3, this.width - 4, this.height - 6, texW, texH);
+            drawCustomRect(
+                this.xPosition + 2,
+                this.yPosition + 2,
+                3,
+                vBase + 3,
+                this.width - 4,
+                this.height - 6,
+                texW,
+                texH);
 
             // 2. 上边框 (2px)
             drawCustomRect(this.xPosition, this.yPosition, 0, vBase, this.width, 2, texW, texH);
@@ -57,13 +68,29 @@ public class GuiIconButton extends GuiButton {
              */
             int bottomH = (vBase % 20 == 0 && !isPressed && hoverState != 2) ? 5 : 4;
             int bottomV = vBase + (20 - bottomH);
-            
+
             // 底部左角
             drawCustomRect(this.xPosition, this.yPosition + this.height - bottomH, 0, bottomV, 2, bottomH, texW, texH);
             // 底部右角
-            drawCustomRect(this.xPosition + this.width - 2, this.yPosition + this.height - bottomH, 198, bottomV, 2, bottomH, texW, texH);
+            drawCustomRect(
+                this.xPosition + this.width - 2,
+                this.yPosition + this.height - bottomH,
+                198,
+                bottomV,
+                2,
+                bottomH,
+                texW,
+                texH);
             // 底部中间拉伸
-            drawCustomRect(this.xPosition + 2, this.yPosition + this.height - bottomH, 2, bottomV, this.width - 4, bottomH, texW, texH);
+            drawCustomRect(
+                this.xPosition + 2,
+                this.yPosition + this.height - bottomH,
+                2,
+                bottomV,
+                this.width - 4,
+                bottomH,
+                texW,
+                texH);
 
             // 绘制文字
             int color = 0xE0E0E0;
@@ -81,8 +108,8 @@ public class GuiIconButton extends GuiButton {
     }
 
     private void drawCustomRect(int x, int y, int u, int v, int w, int h, int texW, int texH) {
-        float f = 1.0F / (float)texW;
-        float f1 = 1.0F / (float)texH;
+        float f = 1.0F / (float) texW;
+        float f1 = 1.0F / (float) texH;
         net.minecraft.client.renderer.Tessellator tessellator = net.minecraft.client.renderer.Tessellator.instance;
         tessellator.startDrawingQuads();
         tessellator.addVertexWithUV(x, y + h, this.zLevel, u * f, (v + h) * f1);
