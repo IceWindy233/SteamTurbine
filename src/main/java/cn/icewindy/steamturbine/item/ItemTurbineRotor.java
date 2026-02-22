@@ -184,6 +184,11 @@ public class ItemTurbineRotor extends Item {
                 // For custom stack format, use the basic texture and apply target item color
                 icons[i] = reg.registerIcon(SteamTurbineMod.MOD_ID + ":basicitem/rotor");
                 useTint[i] = true;
+                ItemStack stack = ItemParser.parseStack(material);
+                if (stack != null) {
+                    ModConfig
+                        .setCachedColor(i, cn.icewindy.steamturbine.util.ColorExtractor.extractColorFromStack(stack));
+                }
             } else {
                 String[] prefixes = { "ingot", "gem", "", "dust" };
                 boolean found = false;
@@ -214,12 +219,26 @@ public class ItemTurbineRotor extends Item {
         if (ItemParser.isStackFormat(itemName)) {
             ItemStack targetStack = ItemParser.parseStack(itemName);
             if (targetStack != null) {
-                return targetStack.getItem()
+                int color = targetStack.getItem()
                     .getColorFromItemStack(targetStack, pass);
+                if (color != 0xFFFFFF && color != 16777215 && color != 0) {
+                    return color;
+                }
+                int cached = ModConfig.getCachedColor(meta);
+                if (cached == -1) {
+                    cached = cn.icewindy.steamturbine.util.ColorExtractor.extractColorFromStack(targetStack);
+                    ModConfig.setCachedColor(meta, cached);
+                }
+                return cached;
             }
         }
         if (meta >= 0 && meta < useTint.length && useTint[meta]) {
-            return ModConfig.getCachedColor(meta);
+            int cached = ModConfig.getCachedColor(meta);
+            if (cached == -1) {
+                cached = cn.icewindy.steamturbine.util.ColorExtractor.getAverageColor(itemName);
+                ModConfig.setCachedColor(meta, cached);
+            }
+            return cached;
         }
         return 0xFFFFFF;
     }

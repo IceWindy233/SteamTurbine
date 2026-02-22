@@ -22,8 +22,22 @@ public class ModRecipes {
         String material = ModConfig.getRotorItemName(meta);
         if (material == null || material.isEmpty()) return;
 
-        // 构建矿辞名称，例如 Iron -> ingotIron
-        String ingotOre = "ingot" + material;
+        Object ingredient = null;
+        if (cn.icewindy.steamturbine.util.ItemParser.isStackFormat(material)) {
+            ingredient = cn.icewindy.steamturbine.util.ItemParser.parseStack(material);
+        } else {
+            // Try different prefixes for OreDict
+            String[] prefixes = { "ingot", "gem", "", "dust" };
+            for (String prefix : prefixes) {
+                if (!net.minecraftforge.oredict.OreDictionary.getOres(prefix + material)
+                    .isEmpty()) {
+                    ingredient = prefix + material;
+                    break;
+                }
+            }
+        }
+
+        if (ingredient == null) return;
 
         // 检查是否启用了叶片
         boolean hasBlade = ModConfig.hasRotorBlade(meta);
@@ -35,7 +49,13 @@ public class ModRecipes {
             // KXK
             // 'X' 代表金属锭, ' ' 代表空
             GameRegistry.addRecipe(
-                new ShapedOreRecipe(new ItemStack(ModItems.turbineBlade, 1, meta), " XX", " XX", " X ", 'X', ingotOre));
+                new ShapedOreRecipe(
+                    new ItemStack(ModItems.turbineBlade, 1, meta),
+                    " XX",
+                    " XX",
+                    " X ",
+                    'X',
+                    ingredient));
 
             // 合成二：转子 (Rotor)
             // KWK
@@ -49,7 +69,7 @@ public class ModRecipes {
                     "WXW",
                     " W ",
                     'X',
-                    ingotOre,
+                    ingredient,
                     'W',
                     new ItemStack(ModItems.turbineBlade, 1, meta)));
         } else {

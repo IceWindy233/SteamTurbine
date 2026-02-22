@@ -469,7 +469,7 @@ public class ModConfig {
 
     public static int getCachedColor(int meta) {
         Integer c = colorCache.get(meta);
-        return c != null ? c : 0xFFFFFF;
+        return c != null ? c : -1;
     }
 
     private static int clampRotorIndex(int meta) {
