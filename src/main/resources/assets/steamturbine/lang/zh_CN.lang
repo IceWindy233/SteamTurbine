@@ -69,3 +69,5 @@ steamturbine.rotor.optimal_flow=最佳流速
 steamturbine.rotor.overflow=超载倍率
 steamturbine.rotor.durability=耐久度
 steamturbine.rotor.infinite=无限
+steamturbine.item.rotor.name=%s转子
+steamturbine.item.blade.name=%s叶片

@@ -7,6 +7,8 @@ import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
+import net.minecraft.util.StatCollector;
+import net.minecraftforge.oredict.OreDictionary;
 
 import cn.icewindy.steamturbine.ModConfig;
 import cn.icewindy.steamturbine.ModCreativeTab;
@@ -38,7 +40,25 @@ public class ItemTurbineBlade extends Item {
 
     @Override
     public String getItemStackDisplayName(ItemStack stack) {
-        return ModConfig.getRotorItemName(stack.getItemDamage()) + " Turbine Blade";
+        String unlocalizedName = getUnlocalizedName(stack) + ".name";
+        if (StatCollector.canTranslate(unlocalizedName)) {
+            return StatCollector.translateToLocal(unlocalizedName);
+        }
+
+        String materialName = ModConfig.getRotorItemName(stack.getItemDamage());
+        String translatedMaterial = translateMaterial(materialName);
+        String template = StatCollector.translateToLocal("steamturbine.item.blade.name");
+        return String.format(template, translatedMaterial);
+    }
+
+    private String translateMaterial(String material) {
+        String ingotName = "ingot" + material;
+        List<ItemStack> ores = OreDictionary.getOres(ingotName);
+        if (ores != null && !ores.isEmpty()) {
+            return ores.get(0)
+                .getDisplayName();
+        }
+        return material;
     }
 
     @SuppressWarnings("unchecked")

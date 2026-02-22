@@ -69,3 +69,5 @@ steamturbine.rotor.optimal_flow=Optimal Flow
 steamturbine.rotor.overflow=Overflow Level
 steamturbine.rotor.durability=Durability
 steamturbine.rotor.infinite=Infinite
+steamturbine.item.rotor.name=%s Turbine Rotor
+steamturbine.item.blade.name=%s Turbine Blade
