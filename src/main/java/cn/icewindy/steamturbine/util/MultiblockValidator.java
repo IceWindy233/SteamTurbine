@@ -13,6 +13,8 @@ import cn.icewindy.steamturbine.tileentity.TileEntityFluidInputHatch;
 import cn.icewindy.steamturbine.tileentity.TileEntityFluidOutputHatch;
 import cn.icewindy.steamturbine.tileentity.TileEntityTurbineController;
 import cn.icewindy.steamturbine.util.multiblock.StructureTemplate;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 /**
  * 涡轮多方块验证器（基于模板引擎）。
@@ -27,6 +29,31 @@ public class MultiblockValidator {
             { "XXX", "XDX", "XXX" } });
 
     private static final Map<ChunkCoordinates, TileEntityTurbineController> occupiedBlocks = new ConcurrentHashMap<>();
+    private static final java.util.List<TileEntityTurbineController> formedControllersCache = new java.util.ArrayList<>();
+
+    public static TileEntityTurbineController getControllerAt(int x, int y, int z) {
+        return occupiedBlocks.get(new net.minecraft.util.ChunkCoordinates(x, y, z));
+    }
+
+    @SideOnly(Side.CLIENT)
+    public static void updateFormedCache(TileEntityTurbineController controller, boolean formed) {
+        formedControllersCache.remove(controller);
+        if (formed) formedControllersCache.add(controller);
+    }
+
+    public static boolean isPartOfFormed(int x, int y, int z) {
+        for (TileEntityTurbineController c : formedControllersCache) {
+            if (c.isInvalid()) continue;
+            if (x >= c.minX && x <= c.maxX && y >= c.minY && y <= c.maxY && z >= c.minZ && z <= c.maxZ) {
+                return true;
+            }
+        }
+        return getControllerAt(x, y, z) != null;
+    }
+
+    public static void forceOccupyClient(int x, int y, int z, TileEntityTurbineController controller) {
+        occupiedBlocks.put(new ChunkCoordinates(x, y, z), controller);
+    }
 
     public static void releaseBlocks(TileEntityTurbineController controller) {
         occupiedBlocks.values()
@@ -43,6 +70,7 @@ public class MultiblockValidator {
         public int dynamoHatchCount;
         public int redstoneControlCount;
         public String errorMessage;
+        public int minX, minY, minZ, maxX, maxY, maxZ;
 
         public ValidationResult(boolean valid, int components, int casings, int inputs, int outputs, int dynamos,
             int redstoneControl, String error) {
@@ -54,6 +82,16 @@ public class MultiblockValidator {
             this.dynamoHatchCount = dynamos;
             this.redstoneControlCount = redstoneControl;
             this.errorMessage = error;
+        }
+
+        public ValidationResult setBounds(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+            this.minX = minX;
+            this.minY = minY;
+            this.minZ = minZ;
+            this.maxX = maxX;
+            this.maxY = maxY;
+            this.maxZ = maxZ;
+            return this;
         }
     }
 
@@ -70,8 +108,18 @@ public class MultiblockValidator {
             controller.clearHatches();
         }
 
-        // 先检查占用冲突
+        // 先检查占用冲突并计算边界
+        int minX = controllerX, minY = controllerY, minZ = controllerZ;
+        int maxX = controllerX, maxY = controllerY, maxZ = controllerZ;
+
         for (ChunkCoordinates coords : TEMPLATE.collectOccupied(world, controllerX, controllerY, controllerZ, facing)) {
+            minX = Math.min(minX, coords.posX);
+            minY = Math.min(minY, coords.posY);
+            minZ = Math.min(minZ, coords.posZ);
+            maxX = Math.max(maxX, coords.posX);
+            maxY = Math.max(maxY, coords.posY);
+            maxZ = Math.max(maxZ, coords.posZ);
+
             TileEntityTurbineController owner = occupiedBlocks.get(coords);
             if (owner != null && owner != controller) {
                 return new ValidationResult(
@@ -164,7 +212,7 @@ public class MultiblockValidator {
             }
         });
         if (error != null) {
-            return new ValidationResult(false, 0, 0, 0, 0, 0, 0, error);
+            return new ValidationResult(false, 0, 0, 0, 0, 0, 0, error).setBounds(minX, minY, minZ, maxX, maxY, maxZ);
         }
 
         if (casingCount[0] < 16) {
@@ -176,7 +224,8 @@ public class MultiblockValidator {
                 outputHatchCount[0],
                 dynamoHatchCount[0],
                 redstoneControlCount[0],
-                String.format("Not enough casings: %d < 16", casingCount[0]));
+                String.format("Not enough casings: %d < 16", casingCount[0]))
+                    .setBounds(minX, minY, minZ, maxX, maxY, maxZ);
         }
         if (inputHatchCount[0] < 1) {
             return new ValidationResult(
@@ -187,7 +236,7 @@ public class MultiblockValidator {
                 outputHatchCount[0],
                 dynamoHatchCount[0],
                 redstoneControlCount[0],
-                "At least 1 input hatch required");
+                "At least 1 input hatch required").setBounds(minX, minY, minZ, maxX, maxY, maxZ);
         }
         if (outputHatchCount[0] < 1) {
             return new ValidationResult(
@@ -198,7 +247,7 @@ public class MultiblockValidator {
                 outputHatchCount[0],
                 dynamoHatchCount[0],
                 redstoneControlCount[0],
-                "At least 1 output hatch required");
+                "At least 1 output hatch required").setBounds(minX, minY, minZ, maxX, maxY, maxZ);
         }
         if (dynamoHatchCount[0] != 1) {
             return new ValidationResult(
@@ -209,7 +258,7 @@ public class MultiblockValidator {
                 outputHatchCount[0],
                 dynamoHatchCount[0],
                 redstoneControlCount[0],
-                "Exactly 1 dynamo hatch required at back center");
+                "Exactly 1 dynamo hatch required at back center").setBounds(minX, minY, minZ, maxX, maxY, maxZ);
         }
         if (redstoneControlCount[0] > 1) {
             return new ValidationResult(
@@ -220,7 +269,7 @@ public class MultiblockValidator {
                 outputHatchCount[0],
                 dynamoHatchCount[0],
                 redstoneControlCount[0],
-                "At most 1 redstone control block allowed");
+                "At most 1 redstone control block allowed").setBounds(minX, minY, minZ, maxX, maxY, maxZ);
         }
 
         if (controller != null) {
@@ -238,7 +287,7 @@ public class MultiblockValidator {
             outputHatchCount[0],
             dynamoHatchCount[0],
             redstoneControlCount[0],
-            null);
+            null).setBounds(minX, minY, minZ, maxX, maxY, maxZ);
     }
 
     public static boolean isValid(World world, int controllerX, int controllerY, int controllerZ,

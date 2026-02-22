@@ -10,5 +10,8 @@ public class ClientProxy extends CommonProxy {
         cpw.mods.fml.client.registry.ClientRegistry.bindTileEntitySpecialRenderer(
             cn.icewindy.steamturbine.tileentity.TileEntityTurbineController.class,
             new cn.icewindy.steamturbine.client.render.TileEntityTurbineControllerRenderer());
+        cpw.mods.fml.client.registry.ClientRegistry.bindTileEntitySpecialRenderer(
+            cn.icewindy.steamturbine.tileentity.TileEntityHeatExchangerController.class,
+            new cn.icewindy.steamturbine.client.render.TileEntityHeatExchangerControllerRenderer());
     }
 }

@@ -23,6 +23,15 @@ public class BlockHeatExchangerCasing extends Block {
     }
 
     @Override
+    public net.minecraft.util.IIcon getIcon(net.minecraft.world.IBlockAccess world, int x, int y, int z, int side) {
+        if (cn.icewindy.steamturbine.util.HeatExchangerValidator.isPartOfFormed(x, y, z)) {
+            // Already using heat_exchanger_casing as default base icon
+            return blockIcon;
+        }
+        return super.getIcon(world, x, y, z, side);
+    }
+
+    @Override
     public void registerBlockIcons(IIconRegister reg) {
         blockIcon = reg.registerIcon(SteamTurbineMod.MOD_ID + ":heat_exchanger_casing");
     }

@@ -18,9 +18,9 @@ public class ContainerFlowLimiter extends Container {
     public ContainerFlowLimiter(InventoryPlayer playerInv, TileEntityFluidInputHatch tile) {
         this.tile = tile;
 
-        // Move player inventory down to match the taller limiter GUI.
-        final int invY = 116;
-        final int hotbarY = 174;
+        // Move player inventory up by 16 px to match user request.
+        final int invY = 100;
+        final int hotbarY = 158;
         for (int i = 0; i < 3; ++i) {
             for (int j = 0; j < 9; ++j) {
                 this.addSlotToContainer(new Slot(playerInv, j + i * 9 + 9, 9 + j * 18, invY + i * 18));

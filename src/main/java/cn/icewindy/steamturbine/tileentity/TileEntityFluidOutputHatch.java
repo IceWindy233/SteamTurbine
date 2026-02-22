@@ -18,17 +18,20 @@ import cn.icewindy.steamturbine.api.IFluidDisplayHatch;
 public class TileEntityFluidOutputHatch extends TileEntity implements IFluidHandler, IFluidDisplayHatch {
 
     private final FluidTank tank = new FluidTank(ModConfig.tankCapacity);
+    private boolean isFormed = false;
 
     @Override
     public void readFromNBT(NBTTagCompound nbt) {
         super.readFromNBT(nbt);
         tank.readFromNBT(nbt);
+        isFormed = nbt.getBoolean("isFormed");
     }
 
     @Override
     public void writeToNBT(NBTTagCompound nbt) {
         super.writeToNBT(nbt);
         tank.writeToNBT(nbt);
+        nbt.setBoolean("isFormed", isFormed);
     }
 
     @Override
@@ -86,13 +89,30 @@ public class TileEntityFluidOutputHatch extends TileEntity implements IFluidHand
     @Override
     public Packet getDescriptionPacket() {
         NBTTagCompound nbt = new NBTTagCompound();
-        tank.writeToNBT(nbt);
+        writeToNBT(nbt);
         return new S35PacketUpdateTileEntity(xCoord, yCoord, zCoord, 0, nbt);
     }
 
     @Override
     public void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity pkt) {
-        tank.readFromNBT(pkt.func_148857_g());
+        readFromNBT(pkt.func_148857_g());
+        if (worldObj != null) {
+            worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+        }
+    }
+
+    public void setFormed(boolean formed) {
+        if (this.isFormed != formed) {
+            this.isFormed = formed;
+            markDirty();
+            if (worldObj != null && !worldObj.isRemote) {
+                worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+            }
+        }
+    }
+
+    public boolean isFormed() {
+        return isFormed;
     }
 
     private void onChanged(boolean changed, int amount) {

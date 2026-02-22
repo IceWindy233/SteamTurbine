@@ -9,6 +9,10 @@ import net.minecraft.util.IIcon;
 import org.lwjgl.opengl.GL11;
 
 import cn.icewindy.steamturbine.block.BlockTurbineController;
+import cn.icewindy.steamturbine.registry.ModBlocks;
+import cn.icewindy.steamturbine.tileentity.TileEntityDynamoHatch;
+import cn.icewindy.steamturbine.tileentity.TileEntityFluidInputHatch;
+import cn.icewindy.steamturbine.tileentity.TileEntityFluidOutputHatch;
 import cn.icewindy.steamturbine.tileentity.TileEntityTurbineController;
 
 public class TileEntityTurbineControllerRenderer extends TileEntitySpecialRenderer {
@@ -85,6 +89,7 @@ public class TileEntityTurbineControllerRenderer extends TileEntitySpecialRender
 
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
 
+        GL11.glPushMatrix();
         GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5);
 
         // Rotation mapping based on ForgeDirection/Metadata
@@ -120,10 +125,129 @@ public class TileEntityTurbineControllerRenderer extends TileEntitySpecialRender
         // Layer 3: Base BG (Top Frame)
         renderPlate(tessellator, BlockTurbineController.rotorBaseBG, 1.5, 0.003);
 
-        GL11.glEnable(GL11.GL_LIGHTING);
+        GL11.glPopMatrix(); // Pop Front Face transform
+
+        // --- Hatch Overlays (Scanning Bounds) ---
+        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+        GL11.glPushMatrix();
+        GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5);
+
+        // Render Hatch Overlays
+        for (int sx = controller.minX; sx <= controller.maxX; sx++) {
+            for (int sy = controller.minY; sy <= controller.maxY; sy++) {
+                for (int sz = controller.minZ; sz <= controller.maxZ; sz++) {
+                    TileEntity hatch = controller.getWorldObj()
+                        .getTileEntity(sx, sy, sz);
+                    IIcon icon = null;
+                    if (hatch instanceof TileEntityFluidInputHatch) {
+                        icon = BlockTurbineController.overlayInput;
+                    } else if (hatch instanceof TileEntityFluidOutputHatch) {
+                        icon = BlockTurbineController.overlayOutput;
+                    } else if (hatch instanceof TileEntityDynamoHatch) {
+                        icon = BlockTurbineController.overlayDynamo;
+                    } else if (controller.getWorldObj()
+                        .getBlock(sx, sy, sz) == ModBlocks.redstoneControl) {
+                            icon = BlockTurbineController.overlayRedstone;
+                        }
+
+                    if (icon != null) {
+                        int brightness = controller.getWorldObj()
+                            .getLightBrightnessForSkyBlocks(sx, sy, sz, 0);
+                        tessellator.setBrightness(brightness);
+                        renderBlockOverlay(tessellator, sx, sy, sz, controller, icon);
+                    }
+                }
+            }
+        }
+
+        GL11.glPopMatrix();
+
         GL11.glEnable(GL11.GL_CULL_FACE);
         GL11.glDisable(GL11.GL_BLEND);
-        GL11.glPopMatrix();
+        GL11.glPopMatrix(); // END Main
+    }
+
+    private void renderBlockOverlay(Tessellator tess, int hx, int hy, int hz, TileEntityTurbineController controller,
+        IIcon icon) {
+        if (icon == null) return;
+        int cx = controller.xCoord;
+        int cy = controller.yCoord;
+        int cz = controller.zCoord;
+
+        double dx = hx - cx;
+        double dy = hy - cy;
+        double dz = hz - cz;
+
+        // Find outward face
+        for (int s = 0; s < 6; s++) {
+            net.minecraftforge.common.util.ForgeDirection dir = net.minecraftforge.common.util.ForgeDirection
+                .getOrientation(s);
+            int nx = hx + dir.offsetX;
+            int ny = hy + dir.offsetY;
+            int nz = hz + dir.offsetZ;
+
+            // If neighbor is NOT part of the structure, it's an outside face
+            if (!cn.icewindy.steamturbine.util.MultiblockValidator.isPartOfFormed(nx, ny, nz)) {
+                renderFace(tess, icon, dx, dy, dz, s);
+            }
+        }
+    }
+
+    private void renderFace(Tessellator tessellator, IIcon icon, double x, double y, double z, int side) {
+        float minU = icon.getMinU();
+        float maxU = icon.getMaxU();
+        float minV = icon.getMinV();
+        float maxV = icon.getMaxV();
+        double d = 0.505; // Slightly more offset to prevent z-fighting
+
+        tessellator.startDrawingQuads();
+        tessellator.setBrightness(240); // Force full brightness
+        tessellator.setColorOpaque_F(1.0F, 1.0F, 1.0F); // Force white color
+        switch (side) {
+            case 0: // Down
+                tessellator.setNormal(0.0F, -1.0F, 0.0F);
+                tessellator.addVertexWithUV(x - 0.5, y - d, z - 0.5, minU, maxV);
+                tessellator.addVertexWithUV(x + 0.5, y - d, z - 0.5, maxU, maxV);
+                tessellator.addVertexWithUV(x + 0.5, y - d, z + 0.5, maxU, minV);
+                tessellator.addVertexWithUV(x - 0.5, y - d, z + 0.5, minU, minV);
+                break;
+            case 1: // Up
+                tessellator.setNormal(0.0F, 1.0F, 0.0F);
+                tessellator.addVertexWithUV(x - 0.5, y + d, z + 0.5, minU, maxV);
+                tessellator.addVertexWithUV(x + 0.5, y + d, z + 0.5, maxU, maxV);
+                tessellator.addVertexWithUV(x + 0.5, y + d, z - 0.5, maxU, minV);
+                tessellator.addVertexWithUV(x - 0.5, y + d, z - 0.5, minU, minV);
+                break;
+            case 2: // North (Z-)
+                tessellator.setNormal(0.0F, 0.0F, -1.0F);
+                tessellator.addVertexWithUV(x + 0.5, y - 0.5, z - d, minU, maxV);
+                tessellator.addVertexWithUV(x - 0.5, y - 0.5, z - d, maxU, maxV);
+                tessellator.addVertexWithUV(x - 0.5, y + 0.5, z - d, maxU, minV);
+                tessellator.addVertexWithUV(x + 0.5, y + 0.5, z - d, minU, minV);
+                break;
+            case 3: // South (Z+)
+                tessellator.setNormal(0.0F, 0.0F, 1.0F);
+                tessellator.addVertexWithUV(x - 0.5, y - 0.5, z + d, minU, maxV);
+                tessellator.addVertexWithUV(x + 0.5, y - 0.5, z + d, maxU, maxV);
+                tessellator.addVertexWithUV(x + 0.5, y + 0.5, z + d, maxU, minV);
+                tessellator.addVertexWithUV(x - 0.5, y + 0.5, z + d, minU, minV);
+                break;
+            case 4: // West (X-)
+                tessellator.setNormal(-1.0F, 0.0F, 0.0F);
+                tessellator.addVertexWithUV(x - d, y - 0.5, z - 0.5, minU, maxV);
+                tessellator.addVertexWithUV(x - d, y - 0.5, z + 0.5, maxU, maxV);
+                tessellator.addVertexWithUV(x - d, y + 0.5, z + 0.5, maxU, minV);
+                tessellator.addVertexWithUV(x - d, y + 0.5, z - 0.5, minU, minV);
+                break;
+            case 5: // East (X+)
+                tessellator.setNormal(1.0F, 0.0F, 0.0F);
+                tessellator.addVertexWithUV(x + d, y - 0.5, z + 0.5, minU, maxV);
+                tessellator.addVertexWithUV(x + d, y - 0.5, z - 0.5, maxU, maxV);
+                tessellator.addVertexWithUV(x + d, y + 0.5, z - 0.5, maxU, minV);
+                tessellator.addVertexWithUV(x + d, y + 0.5, z + 0.5, minU, minV);
+                break;
+        }
+        tessellator.draw();
     }
 
     private void renderPlate(Tessellator tessellator, IIcon icon, double size, double zOffset) {

@@ -59,6 +59,7 @@ public class TileEntityTurbineController extends TileEntity implements IEnergySo
     private ArrayList<TileEntityFluidOutputHatch> outputHatches = new ArrayList<>();
     private ArrayList<TileEntityDynamoHatch> dynamoHatches = new ArrayList<>();
     private ArrayList<int[]> redstoneControlBlocks = new ArrayList<>();
+    public int minX, minY, minZ, maxX, maxY, maxZ;
 
     // --- 运行数据 ---
     public int currentSpeed = 0; // public for Container access
@@ -110,6 +111,21 @@ public class TileEntityTurbineController extends TileEntity implements IEnergySo
 
     public void addRedstoneControlBlock(int x, int y, int z) {
         redstoneControlBlocks.add(new int[] { x, y, z });
+    }
+
+    @SideOnly(Side.CLIENT)
+    public ArrayList<TileEntityFluidInputHatch> getInputHatches() {
+        return inputHatches;
+    }
+
+    @SideOnly(Side.CLIENT)
+    public ArrayList<TileEntityFluidOutputHatch> getOutputHatches() {
+        return outputHatches;
+    }
+
+    @SideOnly(Side.CLIENT)
+    public ArrayList<TileEntityDynamoHatch> getDynamoHatches() {
+        return dynamoHatches;
     }
 
     // ==================== 核心逻辑 ====================
@@ -440,6 +456,7 @@ public class TileEntityTurbineController extends TileEntity implements IEnergySo
         super.invalidate();
         if (isFormed) {
             MultiblockValidator.releaseBlocks(this);
+            if (worldObj.isRemote) MultiblockValidator.updateFormedCache(this, false);
         }
         if (worldObj.isRemote) {
             stopClientSound();
@@ -566,6 +583,14 @@ public class TileEntityTurbineController extends TileEntity implements IEnergySo
 
         if (isFormed != newFormed) {
             isFormed = newFormed;
+            if (isFormed) {
+                this.minX = result.minX;
+                this.minY = result.minY;
+                this.minZ = result.minZ;
+                this.maxX = result.maxX;
+                this.maxY = result.maxY;
+                this.maxZ = result.maxZ;
+            }
             if (!isFormed) {
                 // 结构检查失败时输出详细信息
                 if (TurbineConstants.DEBUG_STRUCTURE_VALIDATION) {
@@ -812,6 +837,13 @@ public class TileEntityTurbineController extends TileEntity implements IEnergySo
             rotorSlot.writeToNBT(rotorNBT);
             nbt.setTag("rotorSlot", rotorNBT);
         }
+
+        nbt.setInteger("minX", minX);
+        nbt.setInteger("minY", minY);
+        nbt.setInteger("minZ", minZ);
+        nbt.setInteger("maxX", maxX);
+        nbt.setInteger("maxY", maxY);
+        nbt.setInteger("maxZ", maxZ);
     }
 
     @Override
@@ -836,6 +868,13 @@ public class TileEntityTurbineController extends TileEntity implements IEnergySo
         } else {
             rotorSlot = null;
         }
+
+        minX = nbt.getInteger("minX");
+        minY = nbt.getInteger("minY");
+        minZ = nbt.getInteger("minZ");
+        maxX = nbt.getInteger("maxX");
+        maxY = nbt.getInteger("maxY");
+        maxZ = nbt.getInteger("maxZ");
     }
 
     @Override
@@ -862,6 +901,12 @@ public class TileEntityTurbineController extends TileEntity implements IEnergySo
         nbt.setBoolean("redstonePowered", redstonePowered);
         nbt.setInteger("facing", facing);
         nbt.setBoolean("isFormed", isFormed); // Crucial for TESR
+        nbt.setInteger("minX", minX);
+        nbt.setInteger("minY", minY);
+        nbt.setInteger("minZ", minZ);
+        nbt.setInteger("maxX", maxX);
+        nbt.setInteger("maxY", maxY);
+        nbt.setInteger("maxZ", maxZ);
 
         NBTTagCompound inputNBT = new NBTTagCompound();
         inputTank.writeToNBT(inputNBT);
@@ -884,6 +929,19 @@ public class TileEntityTurbineController extends TileEntity implements IEnergySo
         redstonePowered = nbt.getBoolean("redstonePowered");
         facing = nbt.getInteger("facing");
         isFormed = nbt.getBoolean("isFormed"); // Crucial for TESR
+        minX = nbt.getInteger("minX");
+        minY = nbt.getInteger("minY");
+        minZ = nbt.getInteger("minZ");
+        maxX = nbt.getInteger("maxX");
+        maxY = nbt.getInteger("maxY");
+        maxZ = nbt.getInteger("maxZ");
+
+        if (worldObj != null && worldObj.isRemote) {
+            MultiblockValidator.updateFormedCache(this, isFormed);
+            // Trigger block rerender for all blocks in the 3x3x4 area
+            // Offset logic or full bounds ensure hatches also rerender
+            worldObj.markBlockRangeForRenderUpdate(minX, minY, minZ, maxX, maxY, maxZ);
+        }
 
         inputTank.readFromNBT(nbt.getCompoundTag("inputTank"));
         outputTank.readFromNBT(nbt.getCompoundTag("outputTank"));

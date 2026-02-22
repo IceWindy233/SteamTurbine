@@ -11,6 +11,7 @@ import ic2.api.energy.tile.IEnergySource;
 
 public class TileEntityDynamoHatch extends TileEntity implements IEnergySource {
 
+    private boolean isFormed = false;
     private boolean addedToEnergyNet = false;
     private double storedEU = 0;
     private static final double MAX_OUTPUT_PER_TICK = 8192.0;
@@ -52,12 +53,42 @@ public class TileEntityDynamoHatch extends TileEntity implements IEnergySource {
     public void readFromNBT(NBTTagCompound nbt) {
         super.readFromNBT(nbt);
         storedEU = nbt.getDouble("storedEU");
+        isFormed = nbt.getBoolean("isFormed");
     }
 
     @Override
     public void writeToNBT(NBTTagCompound nbt) {
         super.writeToNBT(nbt);
         nbt.setDouble("storedEU", storedEU);
+        nbt.setBoolean("isFormed", isFormed);
+    }
+
+    @Override
+    public net.minecraft.network.Packet getDescriptionPacket() {
+        NBTTagCompound tag = new NBTTagCompound();
+        writeToNBT(tag);
+        return new net.minecraft.network.play.server.S35PacketUpdateTileEntity(xCoord, yCoord, zCoord, 1, tag);
+    }
+
+    @Override
+    public void onDataPacket(net.minecraft.network.NetworkManager net,
+        net.minecraft.network.play.server.S35PacketUpdateTileEntity pkt) {
+        readFromNBT(pkt.func_148857_g());
+        worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+    }
+
+    public void setFormed(boolean formed) {
+        if (this.isFormed != formed) {
+            this.isFormed = formed;
+            markDirty();
+            if (worldObj != null && !worldObj.isRemote) {
+                worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+            }
+        }
+    }
+
+    public boolean isFormed() {
+        return isFormed;
     }
 
     // --- IEnergySource ---

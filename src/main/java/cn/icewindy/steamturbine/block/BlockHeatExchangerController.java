@@ -37,11 +37,18 @@ public class BlockHeatExchangerController extends BlockContainer {
         return new TileEntityHeatExchangerController();
     }
 
+    private IIcon iconFrontFormed;
+
     @Override
     public void registerBlockIcons(IIconRegister reg) {
         iconFront = reg.registerIcon(SteamTurbineMod.MOD_ID + ":heat_exchanger_controller_front");
         iconSide = reg.registerIcon(SteamTurbineMod.MOD_ID + ":heat_exchanger_controller_side");
+        iconFrontFormed = reg.registerIcon(SteamTurbineMod.MOD_ID + ":overlayheat_exchanger_controller_front");
         blockIcon = iconSide;
+    }
+
+    public IIcon getIconFrontFormed() {
+        return iconFrontFormed;
     }
 
     @Override
@@ -51,6 +58,17 @@ public class BlockHeatExchangerController extends BlockContainer {
         }
         int facing = meta & 7;
         return side == facing ? iconFront : iconSide;
+    }
+
+    @Override
+    public IIcon getIcon(net.minecraft.world.IBlockAccess world, int x, int y, int z, int side) {
+        int meta = world.getBlockMetadata(x, y, z);
+        int facing = meta & 7;
+
+        if (cn.icewindy.steamturbine.util.HeatExchangerValidator.isPartOfFormed(x, y, z)) {
+            return cn.icewindy.steamturbine.registry.ModBlocks.heatExchangerCasing.getIcon(side, 0);
+        }
+        return getIcon(side, meta);
     }
 
     @Override

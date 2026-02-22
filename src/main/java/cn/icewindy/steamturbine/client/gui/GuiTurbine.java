@@ -30,7 +30,7 @@ public class GuiTurbine extends GuiContainer {
     public GuiTurbine(InventoryPlayer playerInv, TileEntityTurbineController tile) {
         super(new ContainerTurbine(playerInv, tile));
         this.tile = tile;
-        this.xSize = 177;
+        this.xSize = 178;
         this.ySize = 171;
     }
 

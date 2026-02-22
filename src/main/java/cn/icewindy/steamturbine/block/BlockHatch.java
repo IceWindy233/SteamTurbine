@@ -9,6 +9,7 @@ import net.minecraft.world.World;
 
 import cn.icewindy.steamturbine.ModCreativeTab;
 import cn.icewindy.steamturbine.SteamTurbineMod;
+import cn.icewindy.steamturbine.registry.ModBlocks;
 
 public abstract class BlockHatch extends BlockContainer {
 
@@ -40,6 +41,17 @@ public abstract class BlockHatch extends BlockContainer {
     @Override
     public boolean renderAsNormalBlock() {
         return true;
+    }
+
+    @Override
+    public net.minecraft.util.IIcon getIcon(net.minecraft.world.IBlockAccess world, int x, int y, int z, int side) {
+        if (cn.icewindy.steamturbine.util.MultiblockValidator.isPartOfFormed(x, y, z)) {
+            return ModBlocks.turbineCasing.getIcon(side, 0);
+        }
+        if (cn.icewindy.steamturbine.util.HeatExchangerValidator.isPartOfFormed(x, y, z)) {
+            return ModBlocks.heatExchangerCasing.getIcon(side, 0);
+        }
+        return super.getIcon(world, x, y, z, side);
     }
 
     @Override

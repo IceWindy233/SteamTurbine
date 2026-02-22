@@ -23,12 +23,14 @@ public class TileEntityFluidInputHatch extends TileEntity implements IFluidHandl
 
     private final FluidTank tank = new FluidTank(ModConfig.tankCapacity);
     private int maxFlowPerTick = DEFAULT_FLOW_RATE;
+    private boolean isFormed = false;
 
     @Override
     public void readFromNBT(NBTTagCompound nbt) {
         super.readFromNBT(nbt);
         tank.readFromNBT(nbt);
         maxFlowPerTick = clamp(nbt.getInteger("MaxFlowPerTick"), MIN_FLOW_RATE, MAX_FLOW_RATE);
+        isFormed = nbt.getBoolean("isFormed");
         if (maxFlowPerTick < 0) {
             maxFlowPerTick = DEFAULT_FLOW_RATE;
         }
@@ -39,6 +41,22 @@ public class TileEntityFluidInputHatch extends TileEntity implements IFluidHandl
         super.writeToNBT(nbt);
         tank.writeToNBT(nbt);
         nbt.setInteger("MaxFlowPerTick", maxFlowPerTick);
+        nbt.setBoolean("isFormed", isFormed);
+    }
+
+    @Override
+    public Packet getDescriptionPacket() {
+        NBTTagCompound nbt = new NBTTagCompound();
+        writeToNBT(nbt);
+        return new S35PacketUpdateTileEntity(xCoord, yCoord, zCoord, 1, nbt);
+    }
+
+    @Override
+    public void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity pkt) {
+        readFromNBT(pkt.func_148857_g());
+        if (worldObj != null) {
+            worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+        }
     }
 
     @Override
@@ -97,18 +115,6 @@ public class TileEntityFluidInputHatch extends TileEntity implements IFluidHandl
         return tank.getCapacity();
     }
 
-    @Override
-    public Packet getDescriptionPacket() {
-        NBTTagCompound nbt = new NBTTagCompound();
-        writeToNBT(nbt);
-        return new S35PacketUpdateTileEntity(xCoord, yCoord, zCoord, 0, nbt);
-    }
-
-    @Override
-    public void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity pkt) {
-        readFromNBT(pkt.func_148857_g());
-    }
-
     private void onChanged(boolean changed, int amount) {
         if (!changed || amount <= 0) return;
         markDirty();
@@ -135,5 +141,19 @@ public class TileEntityFluidInputHatch extends TileEntity implements IFluidHandl
 
     private static int clamp(int v, int min, int max) {
         return Math.max(min, Math.min(max, v));
+    }
+
+    public void setFormed(boolean formed) {
+        if (this.isFormed != formed) {
+            this.isFormed = formed;
+            markDirty();
+            if (worldObj != null && !worldObj.isRemote) {
+                worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+            }
+        }
+    }
+
+    public boolean isFormed() {
+        return isFormed;
     }
 }

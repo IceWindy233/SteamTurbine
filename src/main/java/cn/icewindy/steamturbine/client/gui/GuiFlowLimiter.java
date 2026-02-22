@@ -18,14 +18,17 @@ public class GuiFlowLimiter extends GuiContainer {
     private static final ResourceLocation GUI_TEXTURE = new ResourceLocation(
         SteamTurbineMod.MOD_ID,
         "textures/gui/gui_flow_limiter.png");
+    private static final ResourceLocation BUTTON_TEXTURE = new ResourceLocation(
+        SteamTurbineMod.MOD_ID,
+        "textures/gui/button.png");
 
     private final TileEntityFluidInputHatch tile;
 
     public GuiFlowLimiter(InventoryPlayer playerInv, TileEntityFluidInputHatch tile) {
         super(new ContainerFlowLimiter(playerInv, tile));
         this.tile = tile;
-        this.xSize = 177;
-        this.ySize = 204;
+        this.xSize = 178;
+        this.ySize = 188;
     }
 
     @Override
@@ -34,12 +37,12 @@ public class GuiFlowLimiter extends GuiContainer {
         int left = (this.width - this.xSize) / 2;
         int top = (this.height - this.ySize) / 2;
 
-        // 限速调节按钮
-        int flowX = left + 114;
-        this.buttonList.add(new GuiButton(0, flowX, top + 24, 46, 12, "-100"));
-        this.buttonList.add(new GuiButton(1, flowX, top + 38, 46, 12, "-10"));
-        this.buttonList.add(new GuiButton(2, flowX, top + 52, 46, 12, "+10"));
-        this.buttonList.add(new GuiButton(3, flowX, top + 66, 46, 12, "+100"));
+        int flowX = left + 120; // 稍微向左移一点点
+        // 缩减到 36x12，垂直间距适配
+        this.buttonList.add(new GuiIconButton(0, flowX, top + 22, 36, 12, "-100", BUTTON_TEXTURE, 0, 0));
+        this.buttonList.add(new GuiIconButton(1, flowX, top + 36, 36, 12, "-10", BUTTON_TEXTURE, 0, 0));
+        this.buttonList.add(new GuiIconButton(2, flowX, top + 50, 36, 12, "+10", BUTTON_TEXTURE, 0, 0));
+        this.buttonList.add(new GuiIconButton(3, flowX, top + 64, 36, 12, "+100", BUTTON_TEXTURE, 0, 0));
     }
 
     @Override
@@ -57,24 +60,26 @@ public class GuiFlowLimiter extends GuiContainer {
             : fluid.getLocalizedName();
         int amount = fluid == null ? 0 : fluid.amount;
 
+        // Information display shifted right by 4 pixels (from 8 to 12)
         this.fontRendererObj.drawString(
             StatCollector.translateToLocal("steamturbine.flow_limiter.fluid") + ": " + fluidName,
-            8,
+            12,
             22,
             0x404040);
         this.fontRendererObj.drawString(
             StatCollector.translateToLocal("steamturbine.flow_limiter.amount") + ": " + amount + " mB",
-            8,
+            12,
             34,
             0x404040);
         this.fontRendererObj.drawString(
             StatCollector.translateToLocal("steamturbine.flow_limiter.limit") + ": "
                 + tile.getMaxFlowPerTick()
                 + " mB/t",
-            8,
+            12,
             46,
             0x404040);
-        this.fontRendererObj.drawString(StatCollector.translateToLocal("container.inventory"), 8, 102, 0x404040);
+        // Inventory title moved to Y=91 (92 - 1)
+        this.fontRendererObj.drawString(StatCollector.translateToLocal("container.inventory"), 8, 90, 0x404040);
     }
 
     @Override

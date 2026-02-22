@@ -14,6 +14,7 @@ import net.minecraft.world.World;
 
 import cn.icewindy.steamturbine.ModCreativeTab;
 import cn.icewindy.steamturbine.SteamTurbineMod;
+import cn.icewindy.steamturbine.registry.ModBlocks;
 import cn.icewindy.steamturbine.tileentity.TileEntityTurbineController;
 
 public class BlockTurbineController extends BlockContainer {
@@ -25,6 +26,11 @@ public class BlockTurbineController extends BlockContainer {
     public static IIcon rotorBaseRing;
     public static IIcon rotorIdle;
     public static IIcon rotorSpinning;
+
+    public static IIcon overlayInput;
+    public static IIcon overlayOutput;
+    public static IIcon overlayDynamo;
+    public static IIcon overlayRedstone;
 
     public BlockTurbineController() {
         super(Material.iron);
@@ -53,6 +59,22 @@ public class BlockTurbineController extends BlockContainer {
         rotorBaseRing = reg.registerIcon(modId + ":rotor/base_ring");
         rotorIdle = reg.registerIcon(modId + ":rotor/rotor_idle");
         rotorSpinning = reg.registerIcon(modId + ":rotor/rotor_spinning");
+
+        overlayInput = reg.registerIcon(modId + ":overlay_input_hatch");
+        overlayOutput = reg.registerIcon(modId + ":overlay_output_hatch");
+        overlayDynamo = reg.registerIcon(modId + ":overlay_dynamo_hatch");
+        overlayRedstone = reg.registerIcon(modId + ":overlay_redstone_control");
+    }
+
+    @Override
+    public IIcon getIcon(net.minecraft.world.IBlockAccess world, int x, int y, int z, int side) {
+        int meta = world.getBlockMetadata(x, y, z);
+        int facing = meta & 7;
+
+        if (cn.icewindy.steamturbine.util.MultiblockValidator.isPartOfFormed(x, y, z)) {
+            return ModBlocks.turbineCasing.getIcon(side, 0);
+        }
+        return getIcon(side, meta);
     }
 
     @Override

@@ -25,7 +25,7 @@ public class GuiFluidHatch extends GuiContainer {
         super(new ContainerFluidHatch(playerInv, tile));
         this.tile = tile;
         this.titleKey = titleKey;
-        this.xSize = 177;
+        this.xSize = 178;
         this.ySize = 171;
     }
 

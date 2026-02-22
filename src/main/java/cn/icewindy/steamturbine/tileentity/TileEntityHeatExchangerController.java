@@ -47,6 +47,7 @@ public class TileEntityHeatExchangerController extends TileEntity implements IFl
     private int lastSteamProduced = 0;
     private long recipesDone = 0;
     private String lastValidationError = "";
+    public int minX, minY, minZ, maxX, maxY, maxZ;
 
     @Override
     public void updateEntity() {
@@ -70,6 +71,17 @@ public class TileEntityHeatExchangerController extends TileEntity implements IFl
 
         pushToHatches();
         markDirty();
+    }
+
+    @Override
+    public void invalidate() {
+        super.invalidate();
+        HeatExchangerValidator.releaseBlocks(this);
+        if (worldObj != null && worldObj.isRemote) {
+            HeatExchangerValidator.updateFormedCache(this, false);
+            worldObj
+                .markBlockRangeForRenderUpdate(xCoord - 3, yCoord - 3, zCoord - 3, xCoord + 3, yCoord + 3, zCoord + 3);
+        }
     }
 
     public void clearHatches() {
@@ -96,13 +108,43 @@ public class TileEntityHeatExchangerController extends TileEntity implements IFl
     }
 
     public void recheckStructure() {
+        if (worldObj.isRemote) return;
+
+        // Use the same release-before-validate pattern as Turbine for consistency
+        if (formed) {
+            HeatExchangerValidator.releaseBlocks(this);
+        }
+
         HeatExchangerValidator.ValidationResult result = HeatExchangerValidator
             .validate(worldObj, xCoord, yCoord, zCoord, ForgeDirection.getOrientation(facing), this);
         boolean newFormed = result.isValid;
         lastValidationError = result.errorMessage == null ? "" : result.errorMessage;
+
         if (newFormed != formed) {
             formed = newFormed;
+            if (formed) {
+                this.minX = result.minX;
+                this.minY = result.minY;
+                this.minZ = result.minZ;
+                this.maxX = result.maxX;
+                this.maxY = result.maxY;
+                this.maxZ = result.maxZ;
+            } else {
+                // If validation failed, ensure blocks are released.
+                HeatExchangerValidator.releaseBlocks(this);
+            }
+            markDirty();
             worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+            // Crucial: Notify neighbors to trigger render updates and block state syncs
+            worldObj.notifyBlockChange(xCoord, yCoord, zCoord, getBlockType());
+        } else if (formed) {
+            // Still formed, maintain bounds and ensure occupiedBlocks map is current on server
+            this.minX = result.minX;
+            this.minY = result.minY;
+            this.minZ = result.minZ;
+            this.maxX = result.maxX;
+            this.maxY = result.maxY;
+            this.maxZ = result.maxZ;
         }
     }
 
@@ -241,6 +283,12 @@ public class TileEntityHeatExchangerController extends TileEntity implements IFl
         lastSteamProduced = nbt.getInteger("LastSteam");
         recipesDone = nbt.getLong("RecipesDone");
         lastValidationError = nbt.getString("LastValidationError");
+        minX = nbt.getInteger("minX");
+        minY = nbt.getInteger("minY");
+        minZ = nbt.getInteger("minZ");
+        maxX = nbt.getInteger("maxX");
+        maxY = nbt.getInteger("maxY");
+        maxZ = nbt.getInteger("maxZ");
         hotTank.readFromNBT(nbt.getCompoundTag("HotTank"));
         waterTank.readFromNBT(nbt.getCompoundTag("WaterTank"));
         steamTank.readFromNBT(nbt.getCompoundTag("SteamTank"));
@@ -259,6 +307,12 @@ public class TileEntityHeatExchangerController extends TileEntity implements IFl
         nbt.setInteger("LastSteam", lastSteamProduced);
         nbt.setLong("RecipesDone", recipesDone);
         nbt.setString("LastValidationError", lastValidationError == null ? "" : lastValidationError);
+        nbt.setInteger("minX", minX);
+        nbt.setInteger("minY", minY);
+        nbt.setInteger("minZ", minZ);
+        nbt.setInteger("maxX", maxX);
+        nbt.setInteger("maxY", maxY);
+        nbt.setInteger("maxZ", maxZ);
         NBTTagCompound hotTag = new NBTTagCompound();
         hotTank.writeToNBT(hotTag);
         nbt.setTag("HotTank", hotTag);
@@ -283,6 +337,34 @@ public class TileEntityHeatExchangerController extends TileEntity implements IFl
     @Override
     public void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity pkt) {
         readFromNBT(pkt.func_148857_g());
+        if (worldObj != null && worldObj.isRemote) {
+            cn.icewindy.steamturbine.util.HeatExchangerValidator.updateFormedCache(this, formed);
+            if (formed) {
+                // Synchronize occupied blocks map on client for texture lookups
+                // Loop with sanity checks to avoid out-of-bounds or infinite loops
+                for (int x = minX; x <= maxX; x++) {
+                    for (int y = minY; y <= maxY; y++) {
+                        for (int z = minZ; z <= maxZ; z++) {
+                            cn.icewindy.steamturbine.util.HeatExchangerValidator.forceOccupyClient(x, y, z, this);
+                        }
+                    }
+                }
+            } else {
+                // Release blocks on client immediately when unformed
+                cn.icewindy.steamturbine.util.HeatExchangerValidator.releaseBlocks(this);
+            }
+            // Trigger a re-render of the entire structure area
+            worldObj.markBlockRangeForRenderUpdate(minX, minY, minZ, maxX, maxY, maxZ);
+        }
+    }
+
+    @Override
+    public void onChunkUnload() {
+        super.onChunkUnload();
+        HeatExchangerValidator.releaseBlocks(this);
+        if (worldObj != null && worldObj.isRemote) {
+            HeatExchangerValidator.updateFormedCache(this, false);
+        }
     }
 
     @Override
@@ -368,6 +450,10 @@ public class TileEntityHeatExchangerController extends TileEntity implements IFl
 
     public void setFacing(int facing) {
         this.facing = facing;
+    }
+
+    public int getFacing() {
+        return facing;
     }
 
     public String[] getInfoLines() {
