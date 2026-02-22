@@ -14,6 +14,7 @@ import net.minecraftforge.oredict.OreDictionary;
 import cn.icewindy.steamturbine.ModConfig;
 import cn.icewindy.steamturbine.ModCreativeTab;
 import cn.icewindy.steamturbine.SteamTurbineMod;
+import cn.icewindy.steamturbine.util.ItemParser;
 import cn.icewindy.steamturbine.util.RotorStats;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -138,6 +139,12 @@ public class ItemTurbineRotor extends Item {
     }
 
     private String translateMaterial(String material) {
+        if (ItemParser.isStackFormat(material)) {
+            ItemStack stack = ItemParser.parseStack(material);
+            if (stack != null) {
+                return stack.getDisplayName();
+            }
+        }
         String ingotName = "ingot" + material;
         List<ItemStack> ores = OreDictionary.getOres(ingotName);
         if (ores != null && !ores.isEmpty()) {
@@ -171,6 +178,10 @@ public class ItemTurbineRotor extends Item {
                 String builtin = stripExtension(iconFile);
                 icons[i] = reg.registerIcon(SteamTurbineMod.MOD_ID + ":" + builtin);
                 useTint[i] = false;
+            } else if (ItemParser.isStackFormat(material)) {
+                // For custom stack format, use the basic texture and apply target item color
+                icons[i] = reg.registerIcon(SteamTurbineMod.MOD_ID + ":basicitem/rotor");
+                useTint[i] = true;
             } else {
                 if (!net.minecraftforge.oredict.OreDictionary.getOres("ingot" + material)
                     .isEmpty()) {
@@ -190,6 +201,14 @@ public class ItemTurbineRotor extends Item {
     @SideOnly(Side.CLIENT)
     public int getColorFromItemStack(ItemStack stack, int pass) {
         int meta = stack.getItemDamage();
+        String itemName = ModConfig.getRotorItemName(meta);
+        if (ItemParser.isStackFormat(itemName)) {
+            ItemStack targetStack = ItemParser.parseStack(itemName);
+            if (targetStack != null) {
+                return targetStack.getItem()
+                    .getColorFromItemStack(targetStack, pass);
+            }
+        }
         if (meta >= 0 && meta < useTint.length && useTint[meta]) {
             return ModConfig.getCachedColor(meta);
         }
