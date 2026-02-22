@@ -8,6 +8,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
+import net.minecraft.util.StatCollector;
 
 import cn.icewindy.steamturbine.ModConfig;
 import cn.icewindy.steamturbine.ModCreativeTab;
@@ -122,7 +123,7 @@ public class ItemTurbineRotor extends Item {
 
     @Override
     public String getItemStackDisplayName(ItemStack stack) {
-        return ModConfig.getRotorItemName(stack.getItemDamage()) + " Turbine Rotor";
+        return StatCollector.translateToLocal(getUnlocalizedName(stack) + ".name");
     }
 
     @SuppressWarnings("unchecked")
@@ -193,14 +194,32 @@ public class ItemTurbineRotor extends Item {
         int remaining = getRemainingDurability(stack);
         int maxDur = getMaxDurability(meta);
 
-        tooltip.add("\u00a77Material: \u00a7f" + ModConfig.getRotorItemName(meta));
-        tooltip.add("\u00a77Efficiency: \u00a7a" + String.format("%.0f%%", stats.efficiency * 100));
-        tooltip.add("\u00a77Optimal Flow: \u00a7b" + stats.optimalFlow + " mB/t");
-        tooltip.add("\u00a77Overflow Level: \u00a7e" + stats.overflowMultiplier);
+        tooltip.add(
+            "\u00a77" + StatCollector.translateToLocal("steamturbine.rotor.material")
+                + ": \u00a7f"
+                + ModConfig.getRotorItemName(meta));
+        tooltip.add(
+            "\u00a77" + StatCollector.translateToLocal("steamturbine.rotor.efficiency")
+                + ": \u00a7a"
+                + String.format("%.0f%%", stats.efficiency * 100));
+        tooltip.add(
+            "\u00a77" + StatCollector.translateToLocal("steamturbine.rotor.optimal_flow")
+                + ": \u00a7b"
+                + stats.optimalFlow
+                + " mB/t");
+        tooltip.add(
+            "\u00a77" + StatCollector.translateToLocal("steamturbine.rotor.overflow")
+                + ": \u00a7e"
+                + stats.overflowMultiplier);
         if (ModConfig.isRotorInfiniteDurability(meta)) {
-            tooltip.add("\u00a77Durability: \u00a7aInfinite");
+            tooltip.add(
+                "\u00a77" + StatCollector.translateToLocal("steamturbine.rotor.durability")
+                    + ": \u00a7a"
+                    + StatCollector.translateToLocal("steamturbine.rotor.infinite"));
         } else {
-            tooltip.add("\u00a77Durability: \u00a7f" + remaining + " / " + maxDur);
+            tooltip.add(
+                "\u00a77" + StatCollector
+                    .translateToLocal("steamturbine.rotor.durability") + ": \u00a7f" + remaining + " / " + maxDur);
         }
     }
 
