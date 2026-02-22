@@ -53,6 +53,8 @@ public class TileEntityHeatExchangerController extends TileEntity implements IFl
     public void updateEntity() {
         if (worldObj.isRemote) return;
 
+        boolean wasActive = isActive();
+
         checkTimer++;
         if (checkTimer >= ModConfig.checkInterval) {
             checkTimer = 0;
@@ -62,15 +64,20 @@ public class TileEntityHeatExchangerController extends TileEntity implements IFl
         if (!formed) {
             lastHotFluidConsumed = 0;
             lastSteamProduced = 0;
+            if (wasActive) {
+                worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+            }
             return;
         }
 
         pullFromHatches();
-
         processOncePerTick();
-
         pushToHatches();
         markDirty();
+
+        if (isActive() != wasActive) {
+            worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+        }
     }
 
     @Override
@@ -454,6 +461,10 @@ public class TileEntityHeatExchangerController extends TileEntity implements IFl
 
     public int getFacing() {
         return facing;
+    }
+
+    public boolean isActive() {
+        return formed && lastHotFluidConsumed > 0;
     }
 
     public String[] getInfoLines() {

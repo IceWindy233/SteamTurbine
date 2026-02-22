@@ -73,7 +73,9 @@ public class TileEntityHeatExchangerControllerRenderer extends TileEntitySpecial
         }
 
         // Render Controller Front Overlay
-        IIcon frontOverlay = ((BlockHeatExchangerController) ModBlocks.heatExchangerController).getIconFrontFormed();
+        BlockHeatExchangerController block = (BlockHeatExchangerController) ModBlocks.heatExchangerController;
+        IIcon frontOverlay = controller.isActive() ? block.getIconFrontActive() : block.getIconFrontFormed();
+        
         if (frontOverlay != null) {
             int brightness = controller.getWorldObj()
                 .getLightBrightnessForSkyBlocks(controller.xCoord, controller.yCoord, controller.zCoord, 0);

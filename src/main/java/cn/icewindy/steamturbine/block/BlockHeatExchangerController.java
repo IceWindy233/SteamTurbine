@@ -38,17 +38,23 @@ public class BlockHeatExchangerController extends BlockContainer {
     }
 
     private IIcon iconFrontFormed;
+    private IIcon iconFrontActive;
 
     @Override
     public void registerBlockIcons(IIconRegister reg) {
         iconFront = reg.registerIcon(SteamTurbineMod.MOD_ID + ":heat_exchanger_controller_front");
         iconSide = reg.registerIcon(SteamTurbineMod.MOD_ID + ":heat_exchanger_controller_side");
         iconFrontFormed = reg.registerIcon(SteamTurbineMod.MOD_ID + ":overlayheat_exchanger_controller_front");
+        iconFrontActive = reg.registerIcon(SteamTurbineMod.MOD_ID + ":overlay_heat_exchanger_controller_front_active");
         blockIcon = iconSide;
     }
 
     public IIcon getIconFrontFormed() {
         return iconFrontFormed;
+    }
+
+    public IIcon getIconFrontActive() {
+        return iconFrontActive;
     }
 
     @Override
