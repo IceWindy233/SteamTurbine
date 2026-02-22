@@ -6,9 +6,11 @@ import net.minecraft.world.World;
 
 import cn.icewindy.steamturbine.inventory.ContainerFlowLimiter;
 import cn.icewindy.steamturbine.inventory.ContainerFluidHatch;
+import cn.icewindy.steamturbine.inventory.ContainerHeatExchanger;
 import cn.icewindy.steamturbine.inventory.ContainerTurbine;
 import cn.icewindy.steamturbine.tileentity.TileEntityFluidInputHatch;
 import cn.icewindy.steamturbine.tileentity.TileEntityFluidOutputHatch;
+import cn.icewindy.steamturbine.tileentity.TileEntityHeatExchangerController;
 import cn.icewindy.steamturbine.tileentity.TileEntityTurbineController;
 import cpw.mods.fml.common.network.IGuiHandler;
 
@@ -28,6 +30,11 @@ public class GuiHandler implements IGuiHandler {
             }
             if (ID == 8 && te instanceof TileEntityFluidOutputHatch) {
                 return new ContainerFluidHatch(player.inventory, te);
+            }
+        } else if (ID == 10) {
+            TileEntity te = world.getTileEntity(x, y, z);
+            if (te instanceof TileEntityHeatExchangerController) {
+                return new ContainerHeatExchanger(player.inventory, (TileEntityHeatExchangerController) te);
             }
         }
         return null;
@@ -49,6 +56,11 @@ public class GuiHandler implements IGuiHandler {
             TileEntity te = world.getTileEntity(x, y, z);
             if (te instanceof TileEntityFluidOutputHatch) {
                 return new GuiFluidHatch(player.inventory, te, "tile.steamturbine.fluid_output_hatch.name");
+            }
+        } else if (ID == 10) {
+            TileEntity te = world.getTileEntity(x, y, z);
+            if (te instanceof TileEntityHeatExchangerController) {
+                return new GuiHeatExchanger(player.inventory, (TileEntityHeatExchangerController) te);
             }
         }
         return null;

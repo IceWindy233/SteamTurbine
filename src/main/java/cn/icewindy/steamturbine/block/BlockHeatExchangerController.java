@@ -8,7 +8,6 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
@@ -127,9 +126,10 @@ public class BlockHeatExchangerController extends BlockContainer {
 
         TileEntityHeatExchangerController controller = (TileEntityHeatExchangerController) te;
         controller.recheckStructure();
-        for (String line : controller.getInfoLines()) {
-            player.addChatMessage(new ChatComponentText(line));
-        }
+
+        // Open GUI instead of just sending chat messages
+        player.openGui(SteamTurbineMod.instance, 10, world, x, y, z);
+
         return true;
     }
 
