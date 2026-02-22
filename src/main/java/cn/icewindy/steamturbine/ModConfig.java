@@ -19,41 +19,41 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
 
 /**
- * 蒸汽涡轮 Mod 配置管理。
+ * Steam Turbine Mod Configuration Management.
  */
 public class ModConfig {
 
     public static final String CONFIG_FOLDER_NAME = "steamturbine";
     private static final String CATEGORY_LHE = "largeHeatExchanger";
 
-    /** 最大输出电压 (EU/t)，默认 512 (HV) */
+    /** Maximum output voltage (EU/t), default 512 (HV) */
     public static int maxOutputVoltage = 512;
 
-    /** 每 EU 消耗的普通蒸汽量 (mB)，默认 2（即 1L 蒸汽 = 0.5 EU） */
+    /** Amount of normal steam (mB) consumed per EU produced, default 2 (1L steam = 0.5 EU) */
     public static int steamPerEU = 2;
 
-    /** 每 EU 消耗的过热蒸汽量 (mB)，默认 1（即 1L = 1 EU） */
+    /** Amount of superheated steam (mB) consumed per EU produced, default 1 (1L = 1 EU) */
     public static int superheatedSteamPerEU = 1;
 
-    /** 内部蒸汽缓冲罐容量 (mB)，默认 64000 */
+    /** Internal steam buffer tank capacity (mB), default 64000 */
     public static int tankCapacity = 64000;
 
-    /** 结构检测间隔 (tick)，默认 40 */
+    /** Multiblock structure check interval (ticks), default 40 */
     public static int checkInterval = 40;
 
-    /** 转子损坏时是否爆炸 */
+    /** Whether to explode when rotor breaks */
     public static boolean rotorBreakExplosion = true;
 
-    /** 大型热交换基础过热阈值（mB/t） */
+    /** Large Heat Exchanger base superheated threshold (mB/t) */
     public static int lheBaseThresholdPerTick = 800;
 
-    /** 大型热交换基础蒸汽倍率，最终输出约为 consume * 倍率 * 2 */
+    /** Large Heat Exchanger base steam multiplier, final output approx consume * multiplier * 2 */
     public static float lheBaseSteamMultiplier = 20.0f;
 
-    /** 大型热交换缺水干烧爆炸倒计时（tick） */
+    /** Large Heat Exchanger dry-heat explosion timer (ticks) */
     public static int lheDryHeatMaxTicks = 2000;
 
-    /** 大型热交换是否允许产出过热蒸汽 */
+    /** Whether Large Heat Exchanger can output superheated steam */
     public static boolean lheEnableSuperheatedOutput = false;
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting()
@@ -118,25 +118,25 @@ public class ModConfig {
     private static class RotorConfigData {
 
         @SerializedName("_Help1")
-        public String help1 = "这是涡轮转子配置文件。你可以在此动态添加任意材料的转子和叶片。";
+        public String help1 = "This is the turbine rotor configuration file. You can dynamically add rotors and blades here.";
 
         @SerializedName("_Help2")
-        public String help2 = "ItemName: 决定材料名，会联动矿物辞典(如Iron->ingotIron)用于合成与取色。";
+        public String help2 = "ItemName: Material name used for OreDictionary lookup (e.g. Iron -> ingotIron) and tinting.";
 
         @SerializedName("_Help3")
-        public String help3 = "OptimalFlow: 最佳蒸汽流量(L/t)；Efficiency: 能量转换效率(0.01 到 1.0)。";
+        public String help3 = "OptimalFlow: Ideal steam flow (mB/t); Efficiency: Energy conversion rate (0.01 to 1.0).";
 
         @SerializedName("_Help4")
-        public String help4 = "Overflow: 溢流倍率，决定转子处理过量蒸汽的能力；Durability: 总耐久度。";
+        public String help4 = "Overflow: Max multiplier to handle excess steam; Durability: Total rotor life.";
 
         @SerializedName("_Help5")
-        public String help5 = "InfiniteDurability: 是否开启无限耐久；Blade: 是否注册并启用关联的叶片物品。";
+        public String help5 = "InfiniteDurability: Toggle for unbreakable rotors; Blade: Toggle for registering blade items.";
 
         @SerializedName("_Help6")
-        public String help6 = "Icon/BladeIcon: 自定义贴图名(需带.png)，设为 null 则根据金属锭自动取色产生贴图。";
+        public String help6 = "Icon/BladeIcon: Custom .png filenames; set to null for auto-tinting based on material.";
 
         @SerializedName("_Help7")
-        public String help7 = "所有修改在重新启动游戏或重载后生效。";
+        public String help7 = "All changes take effect after game restart or configuration reload.";
 
         @SerializedName("Rotors")
         public List<RotorDefinition> rotors = new ArrayList<RotorDefinition>();
@@ -385,10 +385,12 @@ public class ModConfig {
 
     private static List<RotorDefinition> defaultRotors() {
         List<RotorDefinition> defaults = new ArrayList<RotorDefinition>();
-        // 如果配置中没有图标，将触发动态取色
-        defaults.add(new RotorDefinition("基础铁质转子", "Iron", 1, 400, 0.80f, 4000, null, null, false, true));
-        defaults.add(new RotorDefinition("强化钢质转子", "Steel", 2, 800, 0.90f, 8000, null, null, false, true));
-        defaults.add(new RotorDefinition("先进钛质转子", "Titanium", 3, 1600, 1.00f, 16000, null, null, false, true));
+        // If no icon is provided in the config, dynamic tinting will be triggered
+        defaults.add(new RotorDefinition("Basic Iron Rotor", "Iron", 1, 400, 0.80f, 4000, null, null, false, true));
+        defaults
+            .add(new RotorDefinition("Reinforced Steel Rotor", "Steel", 2, 800, 0.90f, 8000, null, null, false, true));
+        defaults.add(
+            new RotorDefinition("Advanced Titanium Rotor", "Titanium", 3, 1600, 1.00f, 16000, null, null, false, true));
         return defaults;
     }
 
