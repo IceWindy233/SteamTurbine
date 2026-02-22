@@ -28,7 +28,7 @@ public class GuiFlowLimiter extends GuiContainer {
         super(new ContainerFlowLimiter(playerInv, tile));
         this.tile = tile;
         this.xSize = 178;
-        this.ySize = 188;
+        this.ySize = 182;
     }
 
     @Override
